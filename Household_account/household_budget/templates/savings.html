@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block content %}
+    <div class="container mt-5">
+        <h2 class="mb-4">貯金ページ</h2>
+        <p>年間目標を決めて達成しよう！</p>
+        {% if latest_goal.savings_goal %}
+            <div class="alert alert-success">
+                <p class="mb-1">目標: ¥{{ latest_goal.savings_goal|floatformat:"0" }}</p>
+                <p class="mb-1">目標まで: ¥{{ latest_goal.savings_goal|floatformat:"0" | calculate_difference:total_savings|floatformat:"0" }}</p>
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <p>目標が設定されていません。</p>
+            </div>
+        {% endif %}
+
+        <p class="mb-3">総合計: ¥{{ total_savings }}</p>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>年月</th>
+                    <th>貯金トータル</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for savings in monthly_savings %}
+                    <tr>
+                        <td>{{ savings.year_month }}</td>
+                        <td>{{ savings.total_savings }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'household_budget:set_goal' %}" class="btn btn-primary mr-2">目標登録</a>
+        <form action="{% url 'household_budget:reset_goal' %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">目標リセット</button>
+            <a href="{% url 'accounts:user' %}" class="btn btn-secondary ml-2">戻る</a>
+        </form>
+    </div>
+{% endblock %}

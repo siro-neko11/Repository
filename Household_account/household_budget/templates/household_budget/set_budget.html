@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .container {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+    padding: 20px;
+  }
+
+  h2 {
+    margin-top: 20px;
+  }
+
+  p {
+    text-align: center;
+  }
+
+  form {
+    margin-top: 20px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+  }
+
+  .btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+  }
+</style>
+
+<title>予算設定</title>
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h2 class="text-center mb-4">予算設定</h2>
+      <p>1度入力した値がそのまま表示されます。</p>
+      <hr>
+      <form method="post" action="{% url 'household_budget:set_budget' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="d-flex justify-content-start mt-3">
+          <button type="submit" class="btn btn-primary" style="margin-right: 10px;">設定</button>
+          <a href="{% url 'accounts:user' %}" class="btn btn-secondary">戻る</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

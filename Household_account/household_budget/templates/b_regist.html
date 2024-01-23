@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .container {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+    padding: 20px;
+  }
+
+  h2 {
+    margin-top: 20px;
+  }
+
+  p {
+    text-align: center;
+  }
+
+  form {
+    margin-top: 20px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+</style>
+
+<title>収支登録</title>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 offset-md-3">
+        <h2 class="text-center mb-4">収支登録</h2>
+        <p>もし貯金を使ってしまった場合、マイナス表記でデータが反映されます。</p>
+        <hr>
+        <form method="post" action="{% url 'household_budget:b_regist' %}">
+          {% csrf_token %}
+          {{ form.as_p }}
+          {% if form.errors %}
+            <div class="alert alert-danger mt-3">
+              <strong>エラー：</strong> フォームに入力エラーがあります。
+              {% if form.errors.name_1 %}
+                <p>{{ form.errors.name_1 }}</p>
+              {% endif %}
+              {% if form.errors.name_2 %}
+                <p>{{ form.errors.name_2 }}</p>
+              {% endif %}
+            </div>
+          {% endif %}
+          <div class="d-flex justify-content-start mt-3">
+          <button type="submit" class="btn btn-primary" style="margin-right: 10px;">登録</button>
+          <a href="{% url 'accounts:user' %}" class="btn btn-secondary">戻る</a>
+          </div>
+         
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

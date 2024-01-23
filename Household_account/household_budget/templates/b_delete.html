@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .container {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  h2 {
+    margin-top: 20px;
+  }
+
+  p {
+    text-align: center;
+  }
+
+  form {
+    margin-top: 20px;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    margin-right: 10px;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+  }
+
+  .btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+  }
+
+  strong {
+    margin-right: 10px;
+  }
+</style>
+
+<title>データ削除</title>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 offset-md-3">
+        <h2 class="text-center mb-4">データ削除</h2>
+        <p>以下のデータを削除しますか？</p>
+        <hr>
+        <ul class="text-left">
+          <li>
+            <strong>日付:</strong> {{ balance_entry.event_date }}
+          </li>
+          <li>
+            <strong>名前1:</strong> {{ balance_entry.name_1 }}
+          </li>
+          <li>
+            <strong>名前2:</strong> {{ balance_entry.name_2 }}
+          </li>
+          <li>
+            <strong>収入:</strong> {{ balance_entry.income }}
+          </li>
+          <li>
+            <strong>家賃:</strong> {{ balance_entry.rent }}
+          </li>
+          <li>
+            <strong>水道代:</strong> {{ balance_entry.water_supply }}
+          </li>
+          <li>
+            <strong>ガス代:</strong> {{ balance_entry.gas }}
+          </li>
+          <li>
+            <strong>電気代:</strong> {{ balance_entry.electricity }}
+          </li>
+          <li>
+            <strong>食費:</strong> {{ balance_entry.food_expenses }}
+          </li>
+          <li>
+            <strong>通信費:</strong> {{ balance_entry.communication_expenses }}
+          </li>
+          <li>
+            <strong>交通費:</strong> {{ balance_entry.transportation_expenses }}
+          </li>
+          <li>
+            <strong>保険代:</strong> {{ balance_entry.insurance_fee }}
+          </li>
+          <li>
+            <strong>日用品:</strong> {{ balance_entry.daily_necessities }}
+          </li>
+          <li>
+            <strong>医療費:</strong> {{ balance_entry.medical_bills }}
+          </li>
+          <li>
+            <strong>交際費:</strong> {{ balance_entry.entertainment_expenses }}
+          </li>
+          <li>
+            <strong>貯金:</strong> {{ balance_entry.saving }}
+          </li>
+          <li>
+            <strong>その他:</strong> {{ balance_entry.add_item }}
+          </li>
+        </ul>
+        <form method="post" action="{% url 'household_budget:delete' balance_entry.id %}">
+          {% csrf_token %}
+          <div class="d-flex justify-content-start mt-3">
+            <button type="submit" class="btn btn-danger">削除</button>
+            <a href="{% url 'household_budget:balance' %}" class="btn btn-secondary ml-2">戻る</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

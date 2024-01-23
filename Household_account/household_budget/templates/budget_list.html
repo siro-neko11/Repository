@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block content %}
+  <title>今月の予算</title>
+  <style>
+    .table {
+      width: 100%;
+      max-width: 100%;
+      margin-bottom: 1rem;
+      border-collapse: collapse;
+    }
+
+    .table th,
+    .table td {
+      padding: 0.75rem;
+      vertical-align: top;
+      border-top: 1px solid #dee2e6;
+      text-align: center;
+      text-align: right;
+    }
+
+    .btn {
+      padding: 0.375rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border-radius: 0.25rem;
+    }
+
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .table th,
+    .table td,
+    .btn {
+      white-space: nowrap; /* テキストを折り返さないようにする */
+      overflow: hidden; /* オーバーフローした内容を非表示にする */
+      text-overflow: ellipsis; /* オーバーフローした内容を省略記号で表示 */
+    }
+  </style>
+  
+  <div class="container">
+    <h2 class="text-center mb-4">今月の予算</h2>
+
+  <h4>今月の予算</h4>
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>家賃</th>
+          <th>水道代</th>
+          <th>ガス代</th>
+          <th>電気代</th>
+          <th>食費</th>
+          <th>通信費</th>
+          <th>交通費</th>
+          <th>保険代</th>
+          <th>日用品</th>
+          <th>医療費</th>
+          <th>交際費</th>
+          <th>貯金</th>
+          <th>その他</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% load humanize %}
+        {% for budget in budget_list %}
+          {% if forloop.first %} {# 最新のデータのみ表示 #}
+            <tr>
+              <td>{{ budget.rent_budget }}</td>
+              <td>{{ budget.water_supply_budget }}</td>
+              <td>{{ budget.gas_budget }}</td>
+              <td>{{ budget.electricity_budget }}</td>
+              <td>{{ budget.food_expenses_budget }}</td>
+              <td>{{ budget.communication_expenses_budget }}</td>
+              <td>{{ budget.transportation_expenses_budget }}</td>
+              <td>{{ budget.insurance_fee_budget }}</td>
+              <td>{{ budget.daily_necessities_budget }}</td>
+              <td>{{ budget.medical_bills_budget }}</td>
+              <td>{{ budget.entertainment_expenses_budget }}</td>
+              <td>{{ budget.saving_budget }}</td>
+              <td>{{ budget.add_item_budget }}</td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+
+        {% if not budget_list %}
+          <tr>
+            <td colspan="13">データがありません。</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>    
+
+    <h4>今月の収支データ</h4>
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>家賃</th>
+          <th>水道代</th>
+          <th>ガス代</th>
+          <th>電気代</th>
+          <th>食費</th>
+          <th>通信費</th>
+          <th>交通費</th>
+          <th>保険代</th>
+          <th>日用品</th>
+          <th>医療費</th>
+          <th>交際費</th>
+          <th>貯金</th>
+          <th>その他</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ monthly_totals.rent }}</td>
+          <td>{{ monthly_totals.water_supply }}</td>
+          <td>{{ monthly_totals.gas }}</td>
+          <td>{{ monthly_totals.electricity }}</td>
+          <td>{{ monthly_totals.food_expenses }}</td>
+          <td>{{ monthly_totals.communication_expenses }}</td>
+          <td>{{ monthly_totals.transportation_expenses }}</td>
+          <td>{{ monthly_totals.insurance_fee }}</td>
+          <td>{{ monthly_totals.daily_necessities }}</td>
+          <td>{{ monthly_totals.medical_bills }}</td>
+          <td>{{ monthly_totals.entertainment_expenses }}</td>
+          <td>{{ monthly_totals.saving }}</td>
+          <td>{{ monthly_totals.add_item }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="d-flex justify-content-start mt-3">
+    <a href="{% url 'household_budget:balance' %}" class="btn btn-secondary ml-2">戻る</a>
+    </div>
+  </div>
+  
+{% endblock %}

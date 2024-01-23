@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2人の家計簿アプリ</title>
+    <style>
+        body {
+            text-align: center;
+            padding: 20px; /* 余白を追加 */
+        }
+
+        h1, p {
+            margin-bottom: 10px; /* 各要素の下に余白を追加 */
+        }
+
+        hr {
+            border: 0; /* ボーダーを無効にする */
+            height: 1px; /* ラインの高さ */
+            background-color: #ccc; /* ラインの色 */
+            margin: 20px 0 50px; /* 上方向に10px、下方向に20pxの余白を追加 */
+        }
+
+        a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        text-align: left;
+
+        }
+
+        .wide-margin {
+            margin-bottom: 30px; /* 余白を20pxに調整 */
+        }
+
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 400px; /* 左右の余白を小さく */
+            margin: 125px 0; /* 上方向と下方向の余白を調整 */
+        }
+
+        a.button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            text-decoration: none;
+            color: #fff;
+            background-color: #ff69b4; /* ピンク色 */
+            border-radius: 5px;
+            transition: background-color 0.3s ease; /* ホバー時のトランジション効果 */
+        }
+
+        a.button:hover {
+            background-color: #d94894; /* ホバー時の色 */
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <h1>2人の家計簿アプリ</h1>
+    <p>夫婦・恋人・兄弟姉妹</p>
+    <p>2人分のお金の管理を1つのアプリで</p>
+    <hr>
+
+</body>
+
+      <a href="{% url 'accounts:user' %}" class="button">私たちだけの家計簿</a>
+      <p class="wide-margin">家計簿を使うにはアカウント登録が必要です。<br>ログインして今年の家計簿を作成しよう！<br></p>
+
+<div class="flex-container">
+    <a href="{% url 'accounts:regist' %}">アカウント登録</a>
+    <a href="{% url 'accounts:login' %}">ログイン</a>
+    <a href="{% url 'accounts:logout' %}">ログアウト</a>
+    <a href="{% url 'accounts:delete' %}">アカウント削除</a>
+    
+</div>
+</html>

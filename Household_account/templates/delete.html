@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="container mt-5 d-flex justify-content-center align-items-center">
+    <div class="card text-center">
+      <div class="card-body">
+        <h2 class="card-title text-dark">アカウント削除</h2>
+        <p class="card-text">本当にアカウントを削除しますか？</p>
+
+        <form method="post" action="{% url 'accounts:delete' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">はい、削除する</button>
+          <a href="{% url 'accounts:home' %}" class="btn btn-secondary ml-2">キャンセル</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

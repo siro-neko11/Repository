@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+    <title>貯金目標設定</title>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center">貯金目標設定</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="card text-center" style="max-width: 400px; margin: auto;"> 
+                        <form method="post" action="{% url 'household_budget:set_goal' %}">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <p>入力した最新の目標が設定されます。</p>
+                            <button type="submit" class="btn btn-primary btn-block">登録</button>
+                            <a href="{% url 'accounts:user' %}" class="btn btn-secondary ml-2">戻る</a>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
