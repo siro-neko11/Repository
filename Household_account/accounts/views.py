@@ -50,7 +50,7 @@ class UserLogoutView(View):
     
     def get(self, request, *args, **kwargs):
         logout(request)
-        return redirect('accounts:login')
+        return redirect('accounts:home')
 
 
 #ログインが必要な画面
