@@ -36,9 +36,13 @@
 
         .flex-container {
             display: flex;
-            justify-content: space-between;
-            padding: 0 400px; /* 左右の余白を小さく */
+            justify-content: center;
+            align-items: center;
             margin: 125px 0; /* 上方向と下方向の余白を調整 */
+        }
+
+         .flex-container a {
+            margin: 0 10px; /* リンクの左右の余白を追加 */
         }
 
         a.button {
@@ -72,10 +76,13 @@
       <p class="wide-margin">家計簿を使うにはアカウント登録が必要です。<br>ログインして今年の家計簿を作成しよう！<br></p>
 
 <div class="flex-container">
-    <a href="{% url 'accounts:regist' %}">アカウント登録</a>
-    <a href="{% url 'accounts:login' %}">ログイン</a>
+    {% if user.is_authenticated %}
     <a href="{% url 'accounts:logout' %}">ログアウト</a>
     <a href="{% url 'accounts:delete' %}">アカウント削除</a>
-    
+    {% else %}
+    <a href="{% url 'accounts:regist' %}">アカウント登録</a>
+    <a href="{% url 'accounts:login' %}">ログイン</a>
+    {% endif %}
+
 </div>
 </html>
