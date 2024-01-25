@@ -247,7 +247,7 @@ def reset_goal(request):
         return redirect('household_budget:savings')
 
     
-
+#収支データ
 class M_DataView(View):
     template_name = 'm_data.html'
 
@@ -331,7 +331,13 @@ class M_DataView(View):
         
         return item_totals
 
+
 #前月比
+from django.db.models import Sum
+from django.shortcuts import render
+from django.views import View
+from .models import BalanceOfPayments
+
 class MonthlyComparisonView(View):
     def get(self, request, year, month):
         user = request.user
@@ -346,6 +352,54 @@ class MonthlyComparisonView(View):
         return render(request, 'm_comparison.html', context)
 
     def calculate_monthly_comparison(self, user, year, month):
+        current_month_data = self.get_month_data(user, year, month)
+
+        if month == 1:
+            last_month_data = self.get_month_data(user, year - 1, 12)
+        else:
+            last_month_data = self.get_month_data(user, year, month - 1)
+
+        # 各項目ごとの差分を計算
+        month_comparison = {
+            'year': year,
+            'month': month,
+            'total_income_diff': (current_month_data['total_income'] or 0) - (last_month_data['total_income'] or 0),
+            'total_rent_diff': (current_month_data['total_rent'] or 0) - (last_month_data['total_rent'] or 0),
+            'total_water_supply_diff': (current_month_data['total_water_supply'] or 0) - (last_month_data['total_water_supply'] or 0),
+            'total_gas_diff': (current_month_data['total_gas'] or 0) - (last_month_data['total_gas'] or 0),
+            'total_electricity_diff': (current_month_data['total_electricity'] or 0) - (last_month_data['total_electricity'] or 0),
+            'total_food_expenses_diff': (current_month_data['total_food_expenses'] or 0) - (last_month_data['total_food_expenses'] or 0),
+            'total_communication_expenses_diff': (current_month_data['total_communication_expenses'] or 0) - (last_month_data['total_communication_expenses'] or 0),
+            'total_transportation_expenses_diff': (current_month_data['total_transportation_expenses'] or 0) - (last_month_data['total_transportation_expenses'] or 0),
+            'total_insurance_fee_diff': (current_month_data['total_insurance_fee'] or 0) - (last_month_data['total_insurance_fee'] or 0),
+            'total_daily_necessities_diff': (current_month_data['total_daily_necessities'] or 0) - (last_month_data['total_daily_necessities'] or 0),
+            'total_medical_bills_diff': (current_month_data['total_medical_bills'] or 0) - (last_month_data['total_medical_bills'] or 0),
+            'total_entertainment_expenses_diff': (current_month_data['total_entertainment_expenses'] or 0) - (last_month_data['total_entertainment_expenses'] or 0),
+            'total_saving_diff': (current_month_data['total_saving'] or 0) - (last_month_data['total_saving'] or 0),
+            'total_add_item_diff': (current_month_data['total_add_item'] or 0) - (last_month_data['total_add_item'] or 0),
+            
+            'total_fixed_expenses_diff': (
+                (current_month_data['total_rent'] or 0) +
+                (current_month_data['total_insurance_fee'] or 0) 
+            ) - (
+                (last_month_data['total_rent'] or 0) +
+                (last_month_data['total_insurance_fee'] or 0) 
+            ),
+            
+            'total_utility_costs_diff': (
+                (current_month_data['total_water_supply'] or 0) +
+                (current_month_data['total_gas'] or 0) +
+                (current_month_data['total_electricity'] or 0)
+            ) - (
+                (last_month_data['total_water_supply'] or 0) +
+                (last_month_data['total_gas'] or 0) +
+                (last_month_data['total_electricity'] or 0)
+            )
+        }
+
+        return month_comparison  
+
+    def get_month_data(self, user, year, month):
         # URLから受け取った年と月を元にデータを取得
         current_month_data = BalanceOfPayments.objects.filter(
             user=user,
@@ -390,43 +444,41 @@ class MonthlyComparisonView(View):
         )
 
         # 各項目ごとの差分を計算
-        month_comparison = {
-            'year': year,
-            'month': month,
-            'total_income_diff': (current_month_data['total_income'] or 0) - (last_month_data['total_income'] or 0),
-            'total_rent_diff': (current_month_data['total_rent'] or 0) - (last_month_data['total_rent'] or 0),
-            'total_water_supply_diff': (current_month_data['total_water_supply'] or 0) - (last_month_data['total_water_supply'] or 0),
-            'total_gas_diff': (current_month_data['total_gas'] or 0) - (last_month_data['total_gas'] or 0),
-            'total_electricity_diff': (current_month_data['total_electricity'] or 0) - (last_month_data['total_electricity'] or 0),
-            'total_food_expenses_diff': (current_month_data['total_food_expenses'] or 0) - (last_month_data['total_food_expenses'] or 0),
-            'total_communication_expenses_diff': (current_month_data['total_communication_expenses'] or 0) - (last_month_data['total_communication_expenses'] or 0),
-            'total_transportation_expenses_diff': (current_month_data['total_transportation_expenses'] or 0) - (last_month_data['total_transportation_expenses'] or 0),
-            'total_insurance_fee_diff': (current_month_data['total_insurance_fee'] or 0) - (last_month_data['total_insurance_fee'] or 0),
-            'total_daily_necessities_diff': (current_month_data['total_daily_necessities'] or 0) - (last_month_data['total_daily_necessities'] or 0),
-            'total_medical_bills_diff': (current_month_data['total_medical_bills'] or 0) - (last_month_data['total_medical_bills'] or 0),
-            'total_entertainment_expenses_diff': (current_month_data['total_entertainment_expenses'] or 0) - (last_month_data['total_entertainment_expenses'] or 0),
-            'total_saving_diff': (current_month_data['total_saving'] or 0) - (last_month_data['total_saving'] or 0),
-            'total_add_item_diff': (current_month_data['total_add_item'] or 0) - (last_month_data['total_add_item'] or 0),
-            
-            
-            'total_fixed_expenses_diff': (
-                (current_month_data['total_rent'] or 0) +
-                (current_month_data['total_insurance_fee'] or 0) 
-            ) - (
-                (last_month_data['total_rent'] or 0) +
-                (last_month_data['total_insurance_fee'] or 0) 
-            ),
-            
-            'total_utility_costs_diff': (
-                (current_month_data['total_water_supply'] or 0) +
-                (current_month_data['total_gas'] or 0) +
-                (current_month_data['total_electricity'] or 0)
-            ) - (
-                (last_month_data['total_water_supply'] or 0) +
-                (last_month_data['total_gas'] or 0) +
-                (last_month_data['total_electricity'] or 0)
-            )
+        month_data = {
+            'total_income': (current_month_data['total_income'] or 0),
+            'total_rent': (current_month_data['total_rent'] or 0),
+            'total_water_supply': (current_month_data['total_water_supply'] or 0),
+            'total_gas': (current_month_data['total_gas'] or 0),
+            'total_electricity': (current_month_data['total_electricity'] or 0),
+            'total_food_expenses': (current_month_data['total_food_expenses'] or 0),
+            'total_communication_expenses': (current_month_data['total_communication_expenses'] or 0),
+            'total_transportation_expenses': (current_month_data['total_transportation_expenses'] or 0),
+            'total_insurance_fee': (current_month_data['total_insurance_fee'] or 0),
+            'total_daily_necessities': (current_month_data['total_daily_necessities'] or 0),
+            'total_medical_bills': (current_month_data['total_medical_bills'] or 0),
+            'total_entertainment_expenses': (current_month_data['total_entertainment_expenses'] or 0),
+            'total_saving': (current_month_data['total_saving'] or 0),
+            'total_add_item': (current_month_data['total_add_item'] or 0),
         }
 
-        return month_comparison  
+        if month != 1:
+            # 1月以外の場合、前月のデータも追加
+            month_data.update({
+                'total_income_last_month': (last_month_data['total_income'] or 0),
+                'total_rent_last_month': (last_month_data['total_rent'] or 0),
+                'total_water_supply_last_month': (last_month_data['total_water_supply'] or 0),
+                'total_gas_last_month': (last_month_data['total_gas'] or 0),
+                'total_electricity_last_month': (last_month_data['total_electricity'] or 0),
+                'total_food_expenses_last_month': (last_month_data['total_food_expenses'] or 0),
+                'total_communication_expenses_last_month': (last_month_data['total_communication_expenses'] or 0),
+                'total_transportation_expenses_last_month': (last_month_data['total_transportation_expenses'] or 0),
+                'total_insurance_fee_last_month': (last_month_data['total_insurance_fee'] or 0),
+                'total_daily_necessities_last_month': (last_month_data['total_daily_necessities'] or 0),
+                'total_medical_bills_last_month': (last_month_data['total_medical_bills'] or 0),
+                'total_entertainment_expenses_last_month': (last_month_data['total_entertainment_expenses'] or 0),
+                'total_saving_last_month': (last_month_data['total_saving'] or 0),
+                'total_add_item_last_month': (last_month_data['total_add_item'] or 0),
+            })
+
+        return month_data
     
