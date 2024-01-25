@@ -12,7 +12,11 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib import messages
 
-#収支登録画面
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+# 収支登録画面のクラス
 class BalanceRegistView(View):
     template_name = 'b_regist.html'
     form_class = BalanceOfPaymentsForm
@@ -20,21 +24,25 @@ class BalanceRegistView(View):
     def get(self, request, *args, **kwargs):
         last_entry = BalanceOfPayments.objects.filter(user=request.user).last()
         initial_data = {'name_1': last_entry.name_1, 'name_2': last_entry.name_2} if last_entry else {}
-        form = self.form_class(user=request.user, initial=initial_data)  # user引数を追加
+        form = self.form_class(user=request.user, initial=initial_data)
         return render(request, self.template_name, {'form': form})
     
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.user, request.POST)
         if form.is_valid():
-            if form.cleaned_data['name_1'] or form.cleaned_data['name_2']:
+            name_1 = form.cleaned_data['name_1']
+            name_2 = form.cleaned_data['name_2']
+
+            if name_1 or name_2:
                 instance = form.save(commit=False)
                 instance.user = request.user
                 instance.save()
                 return redirect('household_budget:b_regist')
             else:
-                messages.error(request, '名前１または名前２のどちら一方は入力してください。')
+                messages.error(request, '名前１または名前２のどちらか一方は入力してください。')
         else:
-            messages.error(request, 'エラーが発生しました。データは保存されませんでした。')
+            messages.error(request, 'エラーが発生しました。データは保存されませんでした.')
+        
         return render(request, self.template_name, {'form': form})
     
         

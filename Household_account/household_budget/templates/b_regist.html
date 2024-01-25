@@ -44,6 +44,13 @@
         <h2 class="text-center mb-4">収支登録</h2>
         <p>もし貯金を使ってしまった場合、マイナス表記でデータが反映されます。</p>
         <hr>
+
+        {% if messages %}
+            {% for message in messages %}
+              <li{% if message.tags %} class="text-center text-danger"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        {% endif %}
+
         <form method="post" action="{% url 'household_budget:b_regist' %}">
           {% csrf_token %}
           {{ form.as_p }}
