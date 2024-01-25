@@ -13,9 +13,6 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-
 # 収支登録画面のクラス
 class BalanceRegistView(View):
     template_name = 'b_regist.html'
@@ -66,7 +63,7 @@ def set_budget(request):
         form = BudgetForm(request.POST, instance=budget)
         if form.is_valid():
             form.save()
-            return redirect('household_budget:set_budget')
+            return redirect('accounts:user')
     else:
         form = BudgetForm(instance=budget)
 
