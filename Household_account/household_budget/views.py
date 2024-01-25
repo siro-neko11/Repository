@@ -37,7 +37,7 @@ class BalanceRegistView(View):
                 instance = form.save(commit=False)
                 instance.user = request.user
                 instance.save()
-                return redirect('household_budget:b_regist')
+                return redirect('accounts:user')
             else:
                 messages.error(request, '名前１または名前２のどちらか一方は入力してください。')
         else:
