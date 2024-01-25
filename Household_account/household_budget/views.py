@@ -333,11 +333,6 @@ class M_DataView(View):
 
 
 #前月比
-from django.db.models import Sum
-from django.shortcuts import render
-from django.views import View
-from .models import BalanceOfPayments
-
 class MonthlyComparisonView(View):
     def get(self, request, year, month):
         user = request.user
