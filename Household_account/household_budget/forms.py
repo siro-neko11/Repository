@@ -8,8 +8,8 @@ from django.contrib.auth import get_user_model
 class BalanceOfPaymentsForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset=get_user_model().objects.all(), widget=forms.HiddenInput())
     event_date = forms.DateField(label='日付', initial=timezone.now().date())
-    name_1 = forms.CharField(label='名前１',required=False)
-    name_2 = forms.CharField(label='名前２', required=False)
+    name_1 = forms.CharField(label='本人名',required=False)
+    name_2 = forms.CharField(label='パートナー名', required=False)
     income = forms.IntegerField(label='収入', initial=0)
     rent = forms.IntegerField(label='家賃', initial=0)
     water_supply = forms.IntegerField(label='水道代', initial=0)
