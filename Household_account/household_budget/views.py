@@ -20,21 +20,29 @@ class TransactionRegistView(View):
 
     def get(self, request, *args, **kwargs):
         transactions = Transaction.objects.all()
-        form = self.form_class(user=request.user)
+        form = self.form_class(user=request.user)  # userを渡す
         return render(request, self.template_name, {'transactions': transactions, 'form': form})
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.user, request.POST)
+        form = self.form_class(user=request.user, data=request.POST)
         if form.is_valid():
-            # 保存処理などを追加
+            # name_1またはname_2がどちらも入力されていない場合、エラーメッセージを表示
+            if not form.cleaned_data['name_1'] and not form.cleaned_data['name_2']:
+                form.add_error(None, "本人名またはパートナー名のどちらか一方は入力してください。")
+                transactions = Transaction.objects.all()
+                return render(request, self.template_name, {'transactions': transactions, 'form': form})
+
+            form.instance.user = request.user
+            vendor_name = form.cleaned_data['vendor_name']
+            vendor, created = Vendor.objects.get_or_create(vendor_name=vendor_name, user=request.user)
+            form.instance.vendor_name = vendor
             form.save()
             return redirect('household_budget:b_regist')  # 保存後に収支登録画面にリダイレクト
         else:
             transactions = Transaction.objects.all()
-            return render(request, self.template_name, {'transactions': transactions, 'form': form})    
+            return render(request, self.template_name, {'transactions': transactions, 'form': form})
         
-        
-#     def get(self, request, *args, **kwargs):
+        #     def get(self, request, *args, **kwargs):
 #         last_entry = Transaction.objects.filter(user=request.user).last()
 #         initial_data = {'name_1': last_entry.name_1, 'name_2': last_entry.name_2} if last_entry else {}
 #         form = self.form_class(user=request.user, initial=initial_data)
@@ -75,13 +83,12 @@ class AddPaymentDestinationView(View):
         form = VendorForm(request.POST)
         if form.is_valid():
             # フォームが妥当であればデータベースに新しい支払先を追加
-            payment_destination = form.cleaned_data['payment_destination']
+            vendor_name = form.cleaned_data['vendor_name']
             user = request.user
-            Vendor.objects.create(user=user, payment_destination=payment_destination)
+            Vendor.objects.create(user=user, vendor_name=vendor_name)
             return redirect('household_budget:b_regist')
 
         return render(request, self.template_name, {'form': form})
-
 
 # 支払先編集
 class UpdatePaymentDestinationView(View):

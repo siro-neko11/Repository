@@ -13,16 +13,16 @@
         <thead>
           <tr>
             <th>支払先名</th>
-            <th><div style="text-align: center;">編集</div></th>
-            <th><div style="text-align: center;">削除</div></th>
+            <th style="text-align: center;">編集</th>
+            <th style="text-align: center;">削除</th>
           </tr>
         </thead>
         <tbody>
-          {% for payment_destination in payment_destinations %}
+          {% for destination in payment_destinations %}
             <tr>
-              <td>{{ payment_destination.payment_destination }}</td>
-              <td style="width: 65px;"><a href="{% url 'household_budget:updatepaymentdestination' pk=payment_destination.pk %}" class="btn btn-primary btn-sm float-right">編集</a></td>
-              <td style="width: 65px;"><a href="{% url 'household_budget:deletepaymentdestination' pk=payment_destination.pk %}" class="btn btn-danger btn-sm float-right">削除</a></td>
+              <td>{{ destination.vendor_name }}</td>
+              <td style="width: 65px;"><a href="{% url 'household_budget:updatepaymentdestination' pk=destination.pk %}" class="btn btn-primary btn-sm float-right">編集</a></td>
+              <td style="width: 65px;"><a href="{% url 'household_budget:deletepaymentdestination' pk=destination.pk %}" class="btn btn-danger btn-sm float-right">削除</a></td>
             </tr>
           {% endfor %}
         </tbody>

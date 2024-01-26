@@ -35,78 +35,125 @@
     background-color: #0056b3;
     border-color: #0056b3;
   }
+
+  .errorlist.nonfield {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+
+  .errorlist.nonfield li {
+    color: red;
+  }
+
+  form label {
+    display: inline-block;
+    width: 150px;
+    text-align: light;
+    margin-right: 10px;
+  }
+
+  form select,
+  form input[type="text"],
+  form input[type="number"],
+  form textarea {
+    width: 50%;
+    padding: 10px;
+    margin: 8px 0;
+    box-sizing: border-box;
+  }
+
+  form select#id_event_date_year,
+  form select#id_event_date_month,
+  form select#id_event_date_day {
+    width: auto;
+  }
+
+  form label[for="id_memo"]{
+    vertical-align: top;
+  }
+
+  .d-flex.justify-content-start {
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
+  .form-group label {
+    float: left;
+    width: 150px;
+  }
+
+  .form-group .form-control {
+    float: left;
+    width: calc(100% - 150px);
+  }
+
+  .error-message {
+    color: red;
+    text-align: center;
+  }
+
+  .button-group {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  form imput[type="date"]{
+    width:50px;
+    box-sizing: border-box;
+  }
 </style>
 
-{% comment %} <title>収支登録</title>
-<body>
-    <h1>Transaction List</h1>
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h2 class="text-center mb-4">収支登録</h2>
+      <p>もし貯金を使ってしまった場合、マイナス表記でデータを入力してください。</p>
+      <p>支払先はご自身で登録し、選択肢に追加できます。</p>
+      <div class="d-flex justify-content-start mt-3">
+         <a button type="submit" class="btn btn-primary" style="margin-right: 10px;" href="{% url 'household_budget:paymentdestination' %}">支払先登録</a>
+         <a button type="submit" class="btn btn-primary" href="{% url 'household_budget:payment_destination_list' %}">支払先一覧</a>
+      </div>
+      <hr>
 
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Event Date</th>
-                <th>Name 1</th>
-                <th>Name 2</th>
-                <th>Category</th>
-                <th>Payment Type</th>
-                <th>Vendor Name</th>
-                <th>Amount</th>
-                <th>Memo</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for transaction in transactions %}
-                <tr>
-                    <td>{{ transaction.event_date }}</td>
-                    <td>{{ transaction.name_1 }}</td>
-                    <td>{{ transaction.name_2 }}</td>
-                    <td>{{ transaction.category }}</td>
-                    <td>{{ transaction.payment_type }}</td>
-                    <td>{{ transaction.vendor_name }}</td>
-                    <td>{{ transaction.amount }}</td>
-                    <td>{{ transaction.memo }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html> {% endcomment %}
+      {% if messages %}
+        <ul class="text-center text-danger">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
 
-  <div class="container">
-    <div class="row">
-      <div class="col-md-6 offset-md-3">
-        <h2 class="text-center mb-4">収支登録</h2>
-        <p>もし貯金を使ってしまった場合、マイナス表記でデータを入力してください。</p>
-        <hr>
-
-        {% if messages %}
-            {% for message in messages %}
-              <li{% if message.tags %} class="text-center text-danger"{% endif %}>{{ message }}</li>
-            {% endfor %}
+      <form method="post" action="{% url 'household_budget:b_regist' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if form.errors %}
+          <div class="alert alert-danger mt-3" style="text-align: center; color: red;">
+            <strong>エラー：</strong> フォームに入力エラーがあります。
+            {% if form.errors.name_1 %}
+              <p>{{ form.errors.name_1 }}</p>
+            {% endif %}
+            {% if form.errors.name_2 %}
+              <p>{{ form.errors.name_2 }}</p>
+            {% endif %}
+          </div>
         {% endif %}
-
-        <form method="post" action="{% url 'household_budget:b_regist' %}">
-          {% csrf_token %}
-          {{ form.as_p }}
-          {% if form.errors %}
-            <div class="alert alert-danger mt-3">
-              <strong>エラー：</strong> フォームに入力エラーがあります。
-              {% if form.errors.name_1 %}
-                <p>{{ form.errors.name_1 }}</p>
-              {% endif %}
-              {% if form.errors.name_2 %}
-                <p>{{ form.errors.name_2 }}</p>
-              {% endif %}
-            </div>
-          {% endif %}
-          <div class="d-flex justify-content-start mt-3">
+        <div class="d-flex justify-content-start mt-3">
           <button type="submit" class="btn btn-primary" style="margin-right: 10px;">登録</button>
           <a href="{% url 'accounts:user' %}" class="btn btn-secondary">戻る</a>
-          </div>
-          <a href="{% url 'household_budget:paymentdestination' %}">支払先登録</a>
-          <a href="{% url 'household_budget:payment_destination_list' %}">支払先一覧</a>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 {% endblock %}
