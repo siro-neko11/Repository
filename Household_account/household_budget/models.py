@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.conf import settings
 import datetime
 from django import forms
+from django.contrib.auth.models import User
 
 
 
@@ -26,11 +27,20 @@ class BalanceOfPayments(models.Model):
     entertainment_expenses = models.IntegerField(default=0)
     saving = models.IntegerField(default=0)
     add_item = models.IntegerField(default=0)
-    
+        
     class Meta:
         db_table = 'BalanceOfPayments'
         ordering = ['event_date']
         
+        
+#支払先登録
+class CustomItemPaymentdestination(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    payment_destination = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.payment_destination        
+    
     
 #予算設定
 class Budget(models.Model):

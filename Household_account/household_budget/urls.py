@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (SavingListView, BalanceOfPaymentsView, BalanceRegistView,
                     M_DataView, BalanceEditView, BalanceDeleteView,
-                    set_budget, set_goal, reset_goal, BudgetList, MonthlyComparisonView)
+                    set_budget, set_goal, reset_goal, BudgetList, MonthlyComparisonView,
+                    AddPaymentDestinationView)
 
 
 app_name = 'household_budget'
@@ -18,5 +19,6 @@ urlpatterns = [
     path('set_budget/', set_budget, name='set_budget'),
     path('budget_list/', BudgetList.as_view(), name='budget_list'),
     path('monthly-comparison/<int:year>/<int:month>/', MonthlyComparisonView.as_view(), name='monthly_comparison'),
+    path('paymentdestination/', AddPaymentDestinationView.as_view(), name='paymentdestination'),
 
 ]

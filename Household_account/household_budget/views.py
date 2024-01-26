@@ -1,8 +1,8 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.db.models import Sum
-from .models import BalanceOfPayments, Budget, Goal_Saving
+from .models import BalanceOfPayments, Budget, Goal_Saving, CustomItemPaymentdestination
 from django.contrib.auth.decorators import login_required
-from .forms import BalanceOfPaymentsForm, SavingForm, BudgetForm
+from .forms import BalanceOfPaymentsForm, SavingForm, BudgetForm, CustomItemPaymentdestinationForm
 from django.views.generic.list import ListView
 from django.utils.decorators import method_decorator
 from django.views.generic.base import  View
@@ -13,7 +13,7 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 
 
-# 収支登録画面のクラス
+# 収支登録画面
 class BalanceRegistView(View):
     template_name = 'b_regist.html'
     form_class = BalanceOfPaymentsForm
@@ -41,8 +41,27 @@ class BalanceRegistView(View):
             messages.error(request, 'エラーが発生しました。データは保存されませんでした.')
         
         return render(request, self.template_name, {'form': form})
-    
-        
+
+
+#支払先登録
+class AddPaymentDestinationView(View):
+    template_name = 'add_payment_destination.html'
+
+    def get(self, request):
+        form = CustomItemPaymentdestinationForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = CustomItemPaymentdestinationForm(request.POST)
+        if form.is_valid():
+            # フォームが妥当であればデータベースに新しい支払先を追加
+            payment_destination = form.cleaned_data['payment_destination']
+            user = request.user
+            CustomItemPaymentdestination.objects.create(user=user, payment_destination=payment_destination)
+            return redirect('household_budget:b_regist')
+
+        return render(request, self.template_name, {'form': form})
+
         
 #予算設定画面
 @login_required

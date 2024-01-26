@@ -17,6 +17,18 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
     
+    def create_superuser(self, user_name, email, password=None):
+        user = self.model(
+            user_name=user_name,
+            email=email,
+        )
+        user.set_password(password)
+        user.is_staff = True
+        user.is_active = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
+    
 
 # ユーザー情報
 class User(AbstractBaseUser, PermissionsMixin):
@@ -26,9 +38,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = ['user_name']
     
     objects = UserManager()
+    
+    def __str__(self):
+        return self.email
     
     def get_absolute_url(self):
         return reverse_lazy('accounts:home')

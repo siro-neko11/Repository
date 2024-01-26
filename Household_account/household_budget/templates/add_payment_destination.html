@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block content %}
+
+<title>支払先登録</title>
+
+<h2>新しい支払先を登録</h2>
+  <form method="post" action="{% url 'household_budget:paymentdestination' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">登録する</button>
+  </form>
+{% endblock %}

@@ -42,7 +42,7 @@
     <div class="row">
       <div class="col-md-6 offset-md-3">
         <h2 class="text-center mb-4">収支登録</h2>
-        <p>もし貯金を使ってしまった場合、マイナス表記でデータが反映されます。</p>
+        <p>もし貯金を使ってしまった場合、マイナス表記でデータを入力してください。</p>
         <hr>
 
         {% if messages %}
@@ -69,7 +69,7 @@
           <button type="submit" class="btn btn-primary" style="margin-right: 10px;">登録</button>
           <a href="{% url 'accounts:user' %}" class="btn btn-secondary">戻る</a>
           </div>
-         
+          <a href="{% url 'household_budget:paymentdestination' %}">支払先登録</a>
         </form>
       </div>
     </div>
