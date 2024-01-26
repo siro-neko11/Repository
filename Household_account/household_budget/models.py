@@ -6,6 +6,16 @@ from django import forms
 from django.contrib.auth.models import User
 
 
+#支払い種別
+class PaymentDestination(models.Model):
+    payment_type = models.CharField(max_length=20)
+    
+    def __str__(self):
+        return self.payment_type
+    
+    class Meta:
+        db_table = 'pament_type'    
+
 
 #収支入力画面
 class BalanceOfPayments(models.Model):
@@ -27,6 +37,7 @@ class BalanceOfPayments(models.Model):
     entertainment_expenses = models.IntegerField(default=0)
     saving = models.IntegerField(default=0)
     add_item = models.IntegerField(default=0)
+    payment_destination = models.ForeignKey(PaymentDestination, on_delete=models.SET_NULL, null=True, blank=True)
         
     class Meta:
         db_table = 'BalanceOfPayments'
@@ -41,6 +52,7 @@ class CustomItemPaymentdestination(models.Model):
     def __str__(self):
         return self.payment_destination        
     
+
     
 #予算設定
 class Budget(models.Model):

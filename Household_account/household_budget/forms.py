@@ -1,8 +1,7 @@
 from django import forms
-from .models import BalanceOfPayments, Budget, Goal_Saving, CustomItemPaymentdestination
+from .models import BalanceOfPayments, Budget, Goal_Saving, CustomItemPaymentdestination, PaymentDestination
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-
 
 #収支登録画面
 #金額入力
@@ -25,8 +24,9 @@ class BalanceOfPaymentsForm(forms.ModelForm):
     entertainment_expenses = forms.IntegerField(label='交際費', initial=0)
     saving = forms.IntegerField(label='貯金', initial=0)
     add_item = forms.IntegerField(label='その他', initial=0)
-    
-    #項目選択
+
+
+    # 項目選択
     ITEM = (
         ('rent', '家賃'), ('water_supply', '水道代'), ('gas', 'ガス代'), ('electricity', '電気代'),
         ('food_expenses', '食費'), ('communication_expenses', '通信費'), ('transportation_expenses', '交通費'), 
@@ -36,27 +36,39 @@ class BalanceOfPaymentsForm(forms.ModelForm):
         
     item = forms.ChoiceField(label='項目', choices=ITEM, initial='food_expenses')
     
-    #支払先選択
+    # 支払先選択
     payment_destination = forms.ChoiceField(label='支払先', choices=[], required=False)
+    #支払い種別選択
+    payment_type = forms.ChoiceField(label='支払種別', choices=[], required=False)
+
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['user'].initial = user
         self.fields['user'].widget = forms.HiddenInput()
         self.fields['payment_destination'].choices = self.get_payment_destination_choices()
+        self.fields['payment_type'].choices = self.get_payment_type_choices()
+        
+    def get_payment_type_choices(self):
+        payment_types = PaymentDestination.objects.all()
+        choices = [(type.payment_type, type.payment_type) for type in payment_types]
+        return choices
 
     def get_payment_destination_choices(self):
         # データベースからユーザーが入力した支払先を取得し、選択肢にセット
         custom_items = CustomItemPaymentdestination.objects.filter(user=self.fields['user'].initial)
         choices = [(item.payment_destination, item.payment_destination) for item in custom_items]
         return choices
+    
+
 
     class Meta:
         model = BalanceOfPayments
         fields = ['event_date', 'name_1', 'name_2', 'income', 'rent', 'water_supply',
                   'gas', 'electricity', 'food_expenses', 'communication_expenses', 
                   'transportation_expenses', 'insurance_fee', 'daily_necessities',
-                  'medical_bills', 'entertainment_expenses', 'saving', 'add_item']
+                  'medical_bills', 'entertainment_expenses', 'saving', 'add_item',
+                  'payment_destination','payment_type']        
 
 #支払先登録
 class CustomItemPaymentdestinationForm(forms.ModelForm):
@@ -65,6 +77,8 @@ class CustomItemPaymentdestinationForm(forms.ModelForm):
     class Meta:
         model = CustomItemPaymentdestination
         fields = ['payment_destination']
+        
+
     
 
  #年月入力       

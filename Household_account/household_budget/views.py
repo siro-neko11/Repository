@@ -29,10 +29,14 @@ class BalanceRegistView(View):
         if form.is_valid():
             name_1 = form.cleaned_data['name_1']
             name_2 = form.cleaned_data['name_2']
+            
+            payment_destination_form = form.cleaned_data['payment_destination_form']
+            payment_destination = payment_destination_form.cleaned_data['payment_destination']
 
             if name_1 or name_2:
                 instance = form.save(commit=False)
                 instance.user = request.user
+                instance.payment_destination = payment_destination  # フォームから取得した支払い種別をセット
                 instance.save()
                 return redirect('accounts:user')
             else:
@@ -106,6 +110,7 @@ class PaymentDestinationListView(View):
             # ユーザーが認証されていない場合は、ログインページなどへリダイレクトするか、エラーを表示するなどの処理を行います
             return render(request, 'error_page.html', {'error_message': 'ログインが必要です'})
     
+
         
 #予算設定画面
 @login_required
