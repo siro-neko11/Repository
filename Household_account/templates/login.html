@@ -91,34 +91,45 @@
         
     </style>
 
-    <div class="login-container">
-        <h3>ログイン</h3>
-        <form method="POST" class="login-form">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="{{ form.email.id_for_label }}">メールアドレス:</label>
-                {{ form.email }}
-            </div>
-            <div class="form-group">
-                <label for="{{ form.password.id_for_label }}">パスワード:</label>
-                {{ form.password }}
-            </div>
+<div class="login-container">
+    <h3>ログイン</h3>
 
-            <div class="form-group">
-                <div class="remember-me-container">
+    {% if messages %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" class="login-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">メールアドレス:</label>
+            {{ form.email }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">パスワード:</label>
+            {{ form.password }}
+        </div>
+
+        <div class="form-group">
+            <div class="remember-me-container">
                 {{ form.remember }}
                 <label for="{{ form.remember.id_for_label }}" class="remember-me-label">ログイン状態を保存する</label>
-                </div>
             </div>
-            
-            <div class="form-group">
-                <input type="hidden" name="next" value="{{ request.GET.next }}">
-                <input type="submit" value="ログイン">
-            </div>
-        </form>
-
-        <div class="signup-link">
-            <p>アカウント登録していない人は<a href="{% url 'accounts:regist' %}">こちら</a></p>
         </div>
+        
+        <div class="form-group">
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <input type="submit" value="ログイン">
+        </div>
+    </form>
+
+    <div class="signup-link">
+        <p>アカウント登録していない人は<a href="{% url 'accounts:regist' %}">こちら</a></p>
     </div>
+</div>
 {% endblock %}

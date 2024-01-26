@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
+from django.contrib import messages
+
 
 #ホーム画面
 class HomeView(TemplateView):
@@ -25,25 +27,27 @@ class UserLoginView(FormView):
     template_name = 'login.html'
     form_class = LoginForm
     
-    #ログイン状態を保持
     def form_valid(self, form):
         remember = form.cleaned_data['remember']
         if remember:
             self.request.session.set_expiry(2678400)
         return super().form_valid(form)
     
-    #ログイン設定
     def post(self, request, *args, **kwargs):
         email = request.POST['email']
         password = request.POST['password']
         user = authenticate(email=email, password=password)
-        next_url = request.POST['next']
+        next_url = request.POST.get('next', '')
+        
         if user is not None and user.is_active:
             login(request, user)
-        if next_url:
-            return redirect(next_url)
-        return redirect('accounts:home')
-
+            if next_url:
+                return redirect(next_url)
+            return redirect('accounts:home')
+        else:
+            # アカウントが存在しないか無効な場合のエラーメッセージ
+            messages.error(request, 'アカウントが存在しないか無効です。')
+            return redirect('accounts:login')  # アカウント登録ページにリダイレクト
 
 #ログアウト画面
 class UserLogoutView(View):
