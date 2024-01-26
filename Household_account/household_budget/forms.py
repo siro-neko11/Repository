@@ -14,7 +14,7 @@ class VendorForm(forms.ModelForm):
 
 #支出登録
 class TransactionForm(forms.ModelForm):
-    user = forms.ModelChoiceField(queryset=get_user_model().objects.all(), widget=forms.HiddenInput())
+    user = forms.ModelChoiceField(queryset=get_user_model().objects.all(), widget=forms.HiddenInput(), required=False)
     event_date = forms.DateField(
         label='日付',
         initial=timezone.now().date(),
@@ -24,19 +24,25 @@ class TransactionForm(forms.ModelForm):
     name_2 = forms.CharField(label='パートナー名', required=False)
     category = forms.ModelChoiceField(label='項目', queryset=Category.objects.all())
     payment_type = forms.ModelChoiceField(label='支払い種別', queryset=PaymentType.objects.all())
-    vendor_name = forms.ModelChoiceField(label='支払先', queryset=Vendor.objects.all(), widget=forms.Select)
     amount = forms.IntegerField(label='金額')
-    memo = forms.CharField(label='メモ', widget=forms.Textarea)
+    memo = forms.CharField(label='メモ', widget=forms.Textarea, required=False)
+    vendor_name = forms.ModelChoiceField(label='支払先', queryset=Vendor.objects.all())
 
-    # VendorFormを追加する代わりに、VendorFormのフィールドを直接追加する
-    vendor_name_form = forms.CharField(label='支払先', max_length=50)
+    def clean_vendor_name(self):
+        vendor_name = self.cleaned_data['vendor_name']
+        if vendor_name:
+            # Vendor モデルのインスタンスを取得する
+            vendor, created = Vendor.objects.get_or_create(vendor_name=vendor_name, user=self.user)
+            return vendor
+        return None
 
     def __init__(self, user, *args, **kwargs):
+        self.user = user
         super(TransactionForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = Transaction
-        fields = ['event_date', 'name_1', 'name_2', 'category', 'payment_type', 'amount', 'memo']
+        fields = ['event_date', 'name_1', 'name_2', 'category', 'payment_type', 'vendor_name', 'amount', 'memo']
 
 # #収支登録画面
 # #金額入力

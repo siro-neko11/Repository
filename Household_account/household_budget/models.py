@@ -50,7 +50,7 @@ class Transaction(models.Model):
     payment_type = models.ForeignKey(PaymentType, on_delete=models.CASCADE)
     vendor_name = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='vendor_transactions')
     amount = models.IntegerField(default=0)
-    memo = models.TextField()
+    memo = models.TextField(null=True)
 
     # def __str__(self):
     #     return f"{self.event_date} - {self.category} - {self.vendor_name} - {self.amount}"
