@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import (SavingListView, BalanceOfPaymentsView, BalanceRegistView,
+from .views import (SavingListView, TransactionView, TransactionRegistView,
                     M_DataView, BalanceEditView, BalanceDeleteView,
                     set_budget, set_goal, reset_goal, BudgetList, MonthlyComparisonView,
                     AddPaymentDestinationView, UpdatePaymentDestinationView, DeletePaymentDestinationView,
@@ -9,8 +9,8 @@ from .views import (SavingListView, BalanceOfPaymentsView, BalanceRegistView,
 app_name = 'household_budget'
 
 urlpatterns = [
-    path('b_regist/', BalanceRegistView.as_view(), name='b_regist'),
-    path('balance/',BalanceOfPaymentsView.as_view(), name='balance'),
+    path('b_regist/', TransactionRegistView.as_view(), name='b_regist'),
+    path('balance/',TransactionView.as_view(), name='balance'),
     path('savings/', SavingListView.as_view(), name='savings'),
     path('set_goal/', set_goal, name='set_goal'),
     path('reset_goal/', reset_goal, name='reset_goal'),

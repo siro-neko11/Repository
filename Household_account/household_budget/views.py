@@ -1,8 +1,8 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.db.models import Sum
-from .models import BalanceOfPayments, Budget, Goal_Saving, CustomItemPaymentdestination
+from .models import Transaction, Budget, Goal_Saving, Vendor
 from django.contrib.auth.decorators import login_required
-from .forms import BalanceOfPaymentsForm, SavingForm, BudgetForm, CustomItemPaymentdestinationForm
+from .forms import TransactionForm, SavingForm, BudgetForm, VendorForm
 from django.views.generic.list import ListView
 from django.utils.decorators import method_decorator
 from django.views.generic.base import  View
@@ -14,54 +14,53 @@ from django.contrib import messages
 
 
 # 収支登録画面
-class BalanceRegistView(View):
+class TransactionRegistView(View):
     template_name = 'b_regist.html'
-    form_class = BalanceOfPaymentsForm
+    form_class = TransactionForm
     
     def get(self, request, *args, **kwargs):
-        last_entry = BalanceOfPayments.objects.filter(user=request.user).last()
+        last_entry = Transaction.objects.filter(user=request.user).last()
         initial_data = {'name_1': last_entry.name_1, 'name_2': last_entry.name_2} if last_entry else {}
         form = self.form_class(user=request.user, initial=initial_data)
         return render(request, self.template_name, {'form': form})
     
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.user, request.POST)
-        if form.is_valid():
-            name_1 = form.cleaned_data['name_1']
-            name_2 = form.cleaned_data['name_2']
+            form = self.form_class(request.user, request.POST)
+            if form.is_valid():
+                name_1 = form.cleaned_data['name_1']
+                name_2 = form.cleaned_data['name_2']
             
-            payment_destination_form = form.cleaned_data['payment_destination_form']
-            payment_destination = payment_destination_form.cleaned_data['payment_destination']
+                payment_destination_form = form.cleaned_data['payment_destination_form']
+                payment_destination = payment_destination_form.cleaned_data['payment_destination']
 
-            if name_1 or name_2:
-                instance = form.save(commit=False)
-                instance.user = request.user
-                instance.payment_destination = payment_destination  # フォームから取得した支払い種別をセット
-                instance.save()
-                return redirect('accounts:user')
+                if name_1 or name_2:
+                    instance = form.save(commit=False)
+                    instance.user = request.user
+                    instance.payment_destination = payment_destination  # フォームから取得した支払い種別をセット
+                    instance.save()
+                    return redirect('accounts:user')
+                else:
+                    messages.error(request, '名前１または名前２のどちらか一方は入力してください。')
             else:
-                messages.error(request, '名前１または名前２のどちらか一方は入力してください。')
-        else:
-            messages.error(request, 'エラーが発生しました。データは保存されませんでした.')
+                messages.error(request, 'エラーが発生しました。データは保存されませんでした.')
         
-        return render(request, self.template_name, {'form': form})
-
+            return render(request, self.template_name, {'form': form})
 
 #支払先登録
 class AddPaymentDestinationView(View):
     template_name = 'add_payment_destination.html'
 
     def get(self, request):
-        form = CustomItemPaymentdestinationForm()
+        form = VendorForm()
         return render(request, self.template_name, {'form': form})
 
     def post(self, request):
-        form = CustomItemPaymentdestinationForm(request.POST)
+        form = VendorForm(request.POST)
         if form.is_valid():
             # フォームが妥当であればデータベースに新しい支払先を追加
             payment_destination = form.cleaned_data['payment_destination']
             user = request.user
-            CustomItemPaymentdestination.objects.create(user=user, payment_destination=payment_destination)
+            Vendor.objects.create(user=user, payment_destination=payment_destination)
             return redirect('household_budget:b_regist')
 
         return render(request, self.template_name, {'form': form})
@@ -70,15 +69,15 @@ class AddPaymentDestinationView(View):
 # 支払先編集
 class UpdatePaymentDestinationView(View):
     template_name = 'update_paymentdestination.html'
-    form_class = CustomItemPaymentdestinationForm
+    form_class = VendorForm
 
     def get(self, request, pk, *args, **kwargs):
-        payment_destination = CustomItemPaymentdestination.objects.get(pk=pk)
+        payment_destination = Vendor.objects.get(pk=pk)
         form = self.form_class(instance=payment_destination)
         return render(request, self.template_name, {'form': form, 'payment_destination': payment_destination})
 
     def post(self, request, pk, *args, **kwargs):
-        payment_destination = CustomItemPaymentdestination.objects.get(pk=pk)
+        payment_destination = Vendor.objects.get(pk=pk)
         form = self.form_class(request.POST, instance=payment_destination)
         if form.is_valid():
             form.save()
@@ -90,11 +89,11 @@ class DeletePaymentDestinationView(View):
     template_name = 'delete_paymentdestination.html'
 
     def get(self, request, pk, *args, **kwargs):
-        payment_destination = CustomItemPaymentdestination.objects.get(pk=pk)
+        payment_destination = Vendor.objects.get(pk=pk)
         return render(request, self.template_name, {'payment_destination': payment_destination})
 
     def post(self, request, pk, *args, **kwargs):
-        payment_destination = CustomItemPaymentdestination.objects.get(pk=pk)
+        payment_destination = Vendor.objects.get(pk=pk)
         payment_destination.delete()
         return redirect('household_budget:b_regist')
     
@@ -104,7 +103,7 @@ class PaymentDestinationListView(View):
 
     def get(self, request):
         if request.user.is_authenticated:
-            payment_destinations = CustomItemPaymentdestination.objects.filter(user=request.user)
+            payment_destinations = Vendor.objects.filter(user=request.user)
             return render(request, self.template_name, {'payment_destinations': payment_destinations})
         else:
             # ユーザーが認証されていない場合は、ログインページなどへリダイレクトするか、エラーを表示するなどの処理を行います
@@ -171,7 +170,7 @@ class BudgetList(ListView):
         last_day_of_month = today.replace(day=28) + timedelta(days=4)
         last_day_of_month = last_day_of_month - timedelta(days=last_day_of_month.day)
         
-        monthly_data = BalanceOfPayments.objects.filter(user=user, event_date__range=[first_day_of_month, last_day_of_month])
+        monthly_data = Transaction.objects.filter(user=user, event_date__range=[first_day_of_month, last_day_of_month])
         
         monthly_totals = {
             'rent': monthly_data.aggregate(Sum('rent'))['rent__sum'] or 0,
@@ -195,11 +194,11 @@ class BudgetList(ListView):
 # 今月のデータ編集
 class BalanceEditView(View):
     template_name = 'edit.html'
-    form_class = BalanceOfPaymentsForm
+    form_class = TransactionForm
 
     def get(self, request, pk=None, *args, **kwargs):
         if request.user.is_authenticated:
-            balance_entry = BalanceOfPayments.objects.get(pk=pk) if pk else None
+            balance_entry = Transaction.objects.get(pk=pk) if pk else None
             initial_data = {'name_1': balance_entry.name_1, 'name_2': balance_entry.name_2} if balance_entry else {}
             form = self.form_class(user=request.user, instance=balance_entry, initial=initial_data)
             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
@@ -207,7 +206,7 @@ class BalanceEditView(View):
             return HttpResponseRedirect(reverse('login'))
 
     def post(self, request, pk=None, *args, **kwargs):
-        balance_entry = BalanceOfPayments.objects.get(pk=pk) if pk else None
+        balance_entry = Transaction.objects.get(pk=pk) if pk else None
         form = self.form_class(request.user, request.POST, instance=balance_entry)
         if form.is_valid():
             instance = form.save(commit=False)
@@ -223,20 +222,20 @@ class BalanceDeleteView(View):
     template_name = 'b_delete.html'
     
     def get(self, request, pk, *args, **kwargs):
-        balance_entry = get_object_or_404(BalanceOfPayments, pk=pk, user=request.user)
+        balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
         return render(request, self.template_name, {'balance_entry': balance_entry})
 
     def post(self, request, pk, *args, **kwargs):
-        balance_entry = get_object_or_404(BalanceOfPayments, pk=pk, user=request.user)
+        balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
         balance_entry.delete()
         return HttpResponseRedirect(reverse('household_budget:balance'))
 
     
 
 #収支画面(ログインが必要)
-class BalanceOfPaymentsView(ListView):
+class TransactionView(ListView):
     template_name = 'balance.html'
-    model = BalanceOfPayments
+    model = Transaction
     context_object_name = 'balance_list'
     
     @method_decorator(login_required)
@@ -244,7 +243,7 @@ class BalanceOfPaymentsView(ListView):
         return super().dispatch(*args, **kwargs)
     
     def get_queryset(self):
-        return BalanceOfPayments.objects.filter(user=self.request.user)
+        return Transaction.objects.filter(user=self.request.user)
     
     #今月の表示
     def get_context_data(self, **kwargs):
@@ -262,11 +261,11 @@ class BalanceOfPaymentsView(ListView):
 @method_decorator(login_required, name='dispatch')
 class SavingListView(ListView):
     template_name = 'savings.html'
-    model = BalanceOfPayments
+    model = Transaction
 
     def get_queryset(self):
         # ユーザーごとに月ごとの貯金額を集計する
-        return BalanceOfPayments.objects.filter(user=self.request.user).values('event_date__year', 'event_date__month').annotate(total_savings=Sum('saving'))
+        return Transaction.objects.filter(user=self.request.user).values('event_date__year', 'event_date__month').annotate(total_savings=Sum('saving'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -342,7 +341,7 @@ class M_DataView(View):
         item_totals = self.calculate_item_totals(user, requested_year_month)
 
         # 指定された月のデータを取得
-        monthly_data = BalanceOfPayments.objects.filter(
+        monthly_data = Transaction.objects.filter(
             user=user,
             event_date__year=requested_year_month.year,
             event_date__month=requested_year_month.month,
@@ -374,7 +373,7 @@ class M_DataView(View):
 
     def calculate_item_totals(self, user, requested_year_month):
         # 指定された月の各項目の合計を計算
-        monthly_data = BalanceOfPayments.objects.filter(
+        monthly_data = Transaction.objects.filter(
             user=user,
             event_date__year=requested_year_month.year,
             event_date__month=requested_year_month.month,
@@ -464,7 +463,7 @@ class MonthlyComparisonView(View):
 
     def get_month_data(self, user, year, month):
         # URLから受け取った年と月を元にデータを取得
-        current_month_data = BalanceOfPayments.objects.filter(
+        current_month_data = Transaction.objects.filter(
             user=user,
             event_date__year=year,
             event_date__month=month
@@ -485,7 +484,7 @@ class MonthlyComparisonView(View):
             total_add_item=Sum('add_item'),
         )
 
-        last_month_data = BalanceOfPayments.objects.filter(
+        last_month_data = Transaction.objects.filter(
             user=user,
             event_date__year=year,
             event_date__month=month - 1 if month > 1 else 12,

@@ -6,8 +6,19 @@ from django import forms
 from django.contrib.auth.models import User
 
 
+#項目
+class Category(models.Model):
+    category_name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.category_name
+    
+    class Meta:
+        db_table = 'category'
+    
+    
 #支払い種別
-class PaymentDestination(models.Model):
+class PaymentType(models.Model):
     payment_type = models.CharField(max_length=20)
     
     def __str__(self):
@@ -15,42 +26,68 @@ class PaymentDestination(models.Model):
     
     class Meta:
         db_table = 'pament_type'    
+        
+        
+#支払先登録
+class Vendor(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    vendor_name = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.vendor_name
+    
+    class Meta:
+        db_table = 'vendor'
+             
 
 #収支入力画面
-class BalanceOfPayments(models.Model):
+class Transaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     event_date = models.DateField()
     name_1 = models.CharField(max_length=20, default='', null=True)
     name_2 = models.CharField(max_length=20, default='', null=True)
-    income = models.IntegerField(default=0)
-    rent = models.IntegerField(default=0)
-    water_supply = models.IntegerField(default=0)
-    gas = models.IntegerField(default=0)
-    electricity = models.IntegerField(default=0)
-    food_expenses = models.IntegerField(default=0)
-    communication_expenses = models.IntegerField(default=0)
-    transportation_expenses = models.IntegerField(default=0)
-    insurance_fee = models.IntegerField(default=0)
-    daily_necessities = models.IntegerField(default=0)
-    medical_bills = models.IntegerField(default=0)
-    entertainment_expenses = models.IntegerField(default=0)
-    saving = models.IntegerField(default=0)
-    add_item = models.IntegerField(default=0)
-    payment_destination = models.ForeignKey(PaymentDestination, on_delete=models.SET_NULL, null=True, blank=True)
-        
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    payment_type = models.ForeignKey(PaymentType, on_delete=models.CASCADE)
+    vendor_name = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='vendor_transactions')
+    amount = models.IntegerField(default=0)
+    memo = models.TextField()
+
+    # def __str__(self):
+    #     return f"{self.event_date} - {self.category} - {self.vendor_name} - {self.amount}"
+    
     class Meta:
         db_table = 'BalanceOfPayments'
         ordering = ['event_date']
         
-        
-#支払先登録
-class CustomItemPaymentdestination(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    payment_destination = models.CharField(max_length=50)
 
-    def __str__(self):
-        return self.payment_destination        
+
+# #収支入力画面
+# class BalanceOfPayments(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     event_date = models.DateField()
+#     name_1 = models.CharField(max_length=20, default='', null=True)
+#     name_2 = models.CharField(max_length=20, default='', null=True)
+#     income = models.IntegerField(default=0)
+#     rent = models.IntegerField(default=0)
+#     water_supply = models.IntegerField(default=0)
+#     gas = models.IntegerField(default=0)
+#     electricity = models.IntegerField(default=0)
+#     food_expenses = models.IntegerField(default=0)
+#     communication_expenses = models.IntegerField(default=0)
+#     transportation_expenses = models.IntegerField(default=0)
+#     insurance_fee = models.IntegerField(default=0)
+#     daily_necessities = models.IntegerField(default=0)
+#     medical_bills = models.IntegerField(default=0)
+#     entertainment_expenses = models.IntegerField(default=0)
+#     saving = models.IntegerField(default=0)
+#     add_item = models.IntegerField(default=0)
+#     payment_destination = models.ForeignKey(PaymentDestination, on_delete=models.SET_NULL, null=True, blank=True)
+        
+#     class Meta:
+#         db_table = 'BalanceOfPayments'
+#         ordering = ['event_date']
+        
+        
     
 
     
