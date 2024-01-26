@@ -28,14 +28,15 @@ class TransactionForm(forms.ModelForm):
     amount = forms.IntegerField(label='金額')
     memo = forms.CharField(label='メモ', widget=forms.Textarea)
 
+    # VendorFormを追加する代わりに、VendorFormのフィールドを直接追加する
+    vendor_name_form = forms.CharField(label='支払先', max_length=50)
+
     def __init__(self, user, *args, **kwargs):
         super(TransactionForm, self).__init__(*args, **kwargs)
-        self.fields['vendor_form'] = VendorForm()
-        self.fields['vendor_form'].fields['vendor_name'].label = '支払先'
 
     class Meta:
         model = Transaction
-        fields = ['event_date', 'name_1', 'name_2', 'category', 'payment_type', 'vendor_name', 'amount', 'memo']
+        fields = ['event_date', 'name_1', 'name_2', 'category', 'payment_type', 'amount', 'memo']
 
 # #収支登録画面
 # #金額入力

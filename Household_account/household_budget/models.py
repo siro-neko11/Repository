@@ -56,7 +56,7 @@ class Transaction(models.Model):
     #     return f"{self.event_date} - {self.category} - {self.vendor_name} - {self.amount}"
     
     class Meta:
-        db_table = 'BalanceOfPayments'
+        db_table = 'transaction'
         ordering = ['event_date']
         
 

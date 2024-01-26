@@ -37,7 +37,41 @@
   }
 </style>
 
-<title>収支登録</title>
+{% comment %} <title>収支登録</title>
+<body>
+    <h1>Transaction List</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Event Date</th>
+                <th>Name 1</th>
+                <th>Name 2</th>
+                <th>Category</th>
+                <th>Payment Type</th>
+                <th>Vendor Name</th>
+                <th>Amount</th>
+                <th>Memo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.event_date }}</td>
+                    <td>{{ transaction.name_1 }}</td>
+                    <td>{{ transaction.name_2 }}</td>
+                    <td>{{ transaction.category }}</td>
+                    <td>{{ transaction.payment_type }}</td>
+                    <td>{{ transaction.vendor_name }}</td>
+                    <td>{{ transaction.amount }}</td>
+                    <td>{{ transaction.memo }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html> {% endcomment %}
+
   <div class="container">
     <div class="row">
       <div class="col-md-6 offset-md-3">
