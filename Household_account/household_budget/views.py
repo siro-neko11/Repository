@@ -62,6 +62,50 @@ class AddPaymentDestinationView(View):
 
         return render(request, self.template_name, {'form': form})
 
+
+# 支払先編集
+class UpdatePaymentDestinationView(View):
+    template_name = 'update_paymentdestination.html'
+    form_class = CustomItemPaymentdestinationForm
+
+    def get(self, request, pk, *args, **kwargs):
+        payment_destination = CustomItemPaymentdestination.objects.get(pk=pk)
+        form = self.form_class(instance=payment_destination)
+        return render(request, self.template_name, {'form': form, 'payment_destination': payment_destination})
+
+    def post(self, request, pk, *args, **kwargs):
+        payment_destination = CustomItemPaymentdestination.objects.get(pk=pk)
+        form = self.form_class(request.POST, instance=payment_destination)
+        if form.is_valid():
+            form.save()
+            return redirect('household_budget:b_regist')
+        return render(request, self.template_name, {'form': form, 'payment_destination': payment_destination})
+
+# 支払先削除
+class DeletePaymentDestinationView(View):
+    template_name = 'delete_paymentdestination.html'
+
+    def get(self, request, pk, *args, **kwargs):
+        payment_destination = CustomItemPaymentdestination.objects.get(pk=pk)
+        return render(request, self.template_name, {'payment_destination': payment_destination})
+
+    def post(self, request, pk, *args, **kwargs):
+        payment_destination = CustomItemPaymentdestination.objects.get(pk=pk)
+        payment_destination.delete()
+        return redirect('household_budget:b_regist')
+    
+#支払先一覧
+class PaymentDestinationListView(View):
+    template_name = 'payment_destination_list.html'
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            payment_destinations = CustomItemPaymentdestination.objects.filter(user=request.user)
+            return render(request, self.template_name, {'payment_destinations': payment_destinations})
+        else:
+            # ユーザーが認証されていない場合は、ログインページなどへリダイレクトするか、エラーを表示するなどの処理を行います
+            return render(request, 'error_page.html', {'error_message': 'ログインが必要です'})
+    
         
 #予算設定画面
 @login_required

@@ -1,21 +1,20 @@
 {% extends 'base.html' %}
-{% load custom_filters %}
 {% block content %}
 
-<title>支払先登録</title>
+<title>支払先削除</title>
 
 <div class="container mt-5">
   <div class="row">
     <div class="col-md-6 offset-md-3">
       <div class="card">
         <div class="card-body text-center">
-          <h2 class="card-title">新しい支払先を登録</h2>
+          <h2 class="card-title mb-4">支払先削除</h2>
           <hr>
-          <form method="post" action="{% url 'household_budget:paymentdestination' %}">
+          <p class="card-text">本当に削除しますか？</p>
+          <form method="post" action="{% url 'household_budget:deletepaymentdestination' pk=payment_destination.pk %}">
             {% csrf_token %}
-            {{ form.as_p }}
-            <div style="text-align: left;">
-              <button type="submit" class="btn btn-primary">登録する</button>
+            <div class="d-flex justify-content-start mt-4">
+              <button type="submit" class="btn btn-danger" style="margin-right: 10px;">削除</button>
               <a href="{% url 'household_budget:b_regist' %}" class="btn btn-secondary">戻る</a>
             </div>
           </form>
