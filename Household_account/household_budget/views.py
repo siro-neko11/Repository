@@ -140,58 +140,78 @@ def set_budget(request):
     return render(request, 'household_budget/set_budget.html', {'form': form, 'current_budget': budget})
 
 
-#予算表示画面
-class BudgetList(ListView):
-    template_name = 'budget_list.html'
-    model = Budget 
-    context_object_name = 'budget_list'
-    
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-    
-    def get_queryset(self):
-        return Budget.objects.filter(user=self.request.user)
-    
-    #今月の表示
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['now'] = datetime.now()
+# #予算表示画面
+# class BudgetList(TemplateView):
+#     template_name = 'm_data.html'
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
         
-         # 今月の収支データを取得し、コンテキストに追加
-        monthly_totals = self.get_monthly_totals()
-        context['monthly_totals'] = monthly_totals
+#         # URLから年と月を取得
+#         year = kwargs.get('year')
+#         month = kwargs.get('month')
         
-        return context
+#         # 最新の予算データを取得
+#         latest_budget = get_object_or_404(
+#             Budget,
+#             user=self.request.user,
+#             event_date__year=year,
+#             event_date__month=month
+#         )
+        
+#         context['latest_budget'] = latest_budget
+#         return context
+# class BudgetList(ListView):
+#     template_name = 'budget_list.html'
+#     model = Budget 
+#     context_object_name = 'budget_list'
+    
+#     @method_decorator(login_required)
+#     def dispatch(self, *args, **kwargs):
+#         return super().dispatch(*args, **kwargs)
+    
+#     def get_queryset(self):
+#         return Budget.objects.filter(user=self.request.user)
+    
+#     #今月の表示
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['now'] = datetime.now()
+        
+#          # 今月の収支データを取得し、コンテキストに追加
+#         monthly_totals = self.get_monthly_totals()
+#         context['monthly_totals'] = monthly_totals
+        
+#         return context
         
  
-    # 今月の収支データを取得するメソッド
-    def get_monthly_totals(self):
-        user = self.request.user
-        today = datetime.now().date()
-        first_day_of_month = today.replace(day=1)
-        last_day_of_month = today.replace(day=28) + timedelta(days=4)
-        last_day_of_month = last_day_of_month - timedelta(days=last_day_of_month.day)
+    # # 今月の収支データを取得するメソッド
+    # def get_monthly_totals(self):
+    #     user = self.request.user
+    #     today = datetime.now().date()
+    #     first_day_of_month = today.replace(day=1)
+    #     last_day_of_month = today.replace(day=28) + timedelta(days=4)
+    #     last_day_of_month = last_day_of_month - timedelta(days=last_day_of_month.day)
         
-        monthly_data = Transaction.objects.filter(user=user, event_date__range=[first_day_of_month, last_day_of_month])
+    #     monthly_data = Transaction.objects.filter(user=user, event_date__range=[first_day_of_month, last_day_of_month])
         
-        monthly_totals = {
-            'rent': monthly_data.aggregate(Sum('rent'))['rent__sum'] or 0,
-            'water_supply': monthly_data.aggregate(Sum('water_supply'))['water_supply__sum'] or 0,
-            'gas': monthly_data.aggregate(Sum('gas'))['gas__sum'] or 0,
-            'electricity': monthly_data.aggregate(Sum('electricity'))['electricity__sum'] or 0,
-            'food_expenses': monthly_data.aggregate(Sum('food_expenses'))['food_expenses__sum'] or 0,
-            'communication_expenses': monthly_data.aggregate(Sum('communication_expenses'))['communication_expenses__sum'] or 0,
-            'transportation_expenses': monthly_data.aggregate(Sum('transportation_expenses'))['transportation_expenses__sum'] or 0,
-            'insurance_fee': monthly_data.aggregate(Sum('insurance_fee'))['insurance_fee__sum'] or 0,
-            'daily_necessities': monthly_data.aggregate(Sum('daily_necessities'))['daily_necessities__sum'] or 0,
-            'medical_bills': monthly_data.aggregate(Sum('medical_bills'))['medical_bills__sum'] or 0,
-            'entertainment_expenses': monthly_data.aggregate(Sum('entertainment_expenses'))['entertainment_expenses__sum'] or 0,
-            'saving': monthly_data.aggregate(Sum('saving'))['saving__sum'] or 0,
-            'add_item': monthly_data.aggregate(Sum('add_item'))['add_item__sum'] or 0,
-        }
+    #     monthly_totals = {
+    #         'rent': monthly_data.aggregate(Sum('rent'))['rent__sum'] or 0,
+    #         'water_supply': monthly_data.aggregate(Sum('water_supply'))['water_supply__sum'] or 0,
+    #         'gas': monthly_data.aggregate(Sum('gas'))['gas__sum'] or 0,
+    #         'electricity': monthly_data.aggregate(Sum('electricity'))['electricity__sum'] or 0,
+    #         'food_expenses': monthly_data.aggregate(Sum('food_expenses'))['food_expenses__sum'] or 0,
+    #         'communication_expenses': monthly_data.aggregate(Sum('communication_expenses'))['communication_expenses__sum'] or 0,
+    #         'transportation_expenses': monthly_data.aggregate(Sum('transportation_expenses'))['transportation_expenses__sum'] or 0,
+    #         'insurance_fee': monthly_data.aggregate(Sum('insurance_fee'))['insurance_fee__sum'] or 0,
+    #         'daily_necessities': monthly_data.aggregate(Sum('daily_necessities'))['daily_necessities__sum'] or 0,
+    #         'medical_bills': monthly_data.aggregate(Sum('medical_bills'))['medical_bills__sum'] or 0,
+    #         'entertainment_expenses': monthly_data.aggregate(Sum('entertainment_expenses'))['entertainment_expenses__sum'] or 0,
+    #         'saving': monthly_data.aggregate(Sum('saving'))['saving__sum'] or 0,
+    #         'add_item': monthly_data.aggregate(Sum('add_item'))['add_item__sum'] or 0,
+    #     }
         
-        return monthly_totals
+    #     return monthly_totals
 
 
 # 今月のデータ編集
@@ -509,12 +529,18 @@ class M_DataView(TemplateView):
         monthly_summary = Transaction.objects.filter(event_date__year=year, event_date__month=month)\
             .values('category__category_name')\
             .annotate(total_amount=Sum('amount'))
+        
+        #データが無い場合の処理
+        if not monthly_summary:
+            context['no_data_message'] = 'データが未入力です'
+            return context
 
         # 月ごとの詳細データを取得
         monthly_details = Transaction.objects.filter(event_date__year=year, event_date__month=month)
 
         # 最新の予算データを取得
-        latest_budget = Budget.objects.filter(event_date__year=year, event_date__month=month).latest('event_date')
+        latest_budget = Budget.objects.filter(event_date__year=year, event_date__month=month).order_by('-event_date').first()
+
 
         context['year'] = year
         context['month'] = month
