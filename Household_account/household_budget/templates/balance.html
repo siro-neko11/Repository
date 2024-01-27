@@ -6,58 +6,68 @@
     margin-top: 50px;
   }
 </style>
-    <div class="container mt-5">
-        <h2 class="mb-4">今月のデータ</h2>
-        
-        <h3>集計</h3>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>項目</th>
-                    <th>合計金額</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in sorted_monthly_summary %}
-                    <tr>
-                        <td>{{ entry.category__category_name }}</td>
-                        <td>{{ entry.total_amount }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container mt-5">
+    <h2 class="mb-4">今月のデータ</h2>
 
-        <h3>詳細取引データ</h3>
-        <table class="table table-bordered">
-            <thead>
+    <h3>集計</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>項目</th>
+                <th>合計金額</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in sorted_monthly_summary %}
                 <tr>
-                    <th>日付</th>
-                    <th>本人名</th>
-                    <th>パートナー名</th>
-                    <th>項目</th>
-                    <th>支払先</th>
-                    <th>種別</th>
-                    <th>金額</th>
-                    <th>メモ</th>
+                    <td>{{ entry.category__category_name }}</td>
+                    <td>{{ entry.total_amount }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                {% for entry in detailed_transactions %}
-                    <tr>
-                        <td>{{ entry.event_date|date:"n月 j日" }}</td>
-                        <td>{{ entry.name_1 }}</td>
-                        <td>{{ entry.name_2 }}</td>
-                        <td>{{ entry.category__category_name }}</td>
-                        <td>{{ entry.vendor_name__vendor_name }}</td>
-                        <td>{{ entry.payment_type__payment_type }}</td>
-                        <td>{{ entry.amount }}</td>
-                        <td>{{ entry.memo }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>詳細取引データ</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>日付</th>
+                <th>本人名</th>
+                <th>パートナー名</th>
+                <th>項目</th>
+                <th>支払先</th>
+                <th>種別</th>
+                <th>金額</th>
+                <th>メモ</th>
+                <th>編集</th>
+                <th>削除</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in detailed_transactions %}
+                <tr>
+                    <td>{{ entry.event_date|date:"n月 j日" }}</td>
+                    <td>{{ entry.name_1 }}</td>
+                    <td>{{ entry.name_2 }}</td>
+                    <td>{{ entry.category__category_name }}</td>
+                    <td>{{ entry.vendor_name__vendor_name }}</td>
+                    <td>{{ entry.payment_type__payment_type }}</td>
+                    <td>{{ entry.amount }}</td>
+                    <td>{{ entry.memo }}</td>
+                    {% comment %} <td>
+                    <!-- 編集ボタンを追加 -->
+                    <a href="{% url 'household_budget:edit_transaction' entry.id %}" class="btn btn-primary">編集</a>
+                    </td> {% endcomment %}
+                    <td>
+                        <!-- 削除ボタンを追加 -->
+                        {% comment %} <a href="{% url 'household_budget:delete' entry.id %}" class="btn btn-danger">削除</a> {% endcomment %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     <div class="d-flex justify-content-start mt-3">
-    <a href="{% url 'accounts:user' %}" class="btn btn-secondary ml-2">戻る</a>
+        <a href="{% url 'accounts:user' %}" class="btn btn-secondary ml-2">戻る</a>
     </div>
-    </div>
+</div>
 {% endblock %}

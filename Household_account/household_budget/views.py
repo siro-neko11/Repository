@@ -9,11 +9,15 @@ from django.views.generic.base import  View
 from django.http.response import HttpResponse as HttpResponse
 from datetime import datetime, timedelta
 from django.urls import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404, HttpResponseNotFound
 from django.contrib import messages
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DeleteView, DetailView, UpdateView
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
+from django.urls import reverse_lazy
+from django.core.exceptions import PermissionDenied
+
+
 
 
 # 収支登録画面
@@ -191,35 +195,93 @@ class BudgetList(ListView):
 
 
 # 今月のデータ編集
-class BalanceEditView(View):
-    template_name = 'edit.html'
-    form_class = TransactionForm
+def edit_transaction(request, transaction_id):
+    transaction = get_object_or_404(Transaction, pk=transaction_id)
 
-    def get(self, request, pk=None, *args, **kwargs):
-        if request.user.is_authenticated:
-            balance_entry = Transaction.objects.get(pk=pk) if pk else None
-            initial_data = {'name_1': balance_entry.name_1, 'name_2': balance_entry.name_2} if balance_entry else {}
-            form = self.form_class(user=request.user, instance=balance_entry, initial=initial_data)
-            return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
-        else:
-            return HttpResponseRedirect(reverse('login'))
-
-    def post(self, request, pk=None, *args, **kwargs):
-        balance_entry = Transaction.objects.get(pk=pk) if pk else None
-        form = self.form_class(request.user, request.POST, instance=balance_entry)
+    if request.method == 'POST':
+        form = TransactionForm(request.user, request.POST, instance=transaction)
         if form.is_valid():
-            instance = form.save(commit=False)
-            instance.user = request.user
-            instance.save()
-            return redirect('household_budget:balance')
-        else:
-            return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})    
-                             
-                  
+            form.save()
+            return redirect('transaction_list')  # 編集後にリダイレクトする先を指定
+    else:
+        form = TransactionForm(request.user, instance=transaction)
+
+    # テンプレートに渡すデータにURLを追加
+    edit_url = reverse('edit_transaction', args=[transaction.pk])
+    return render(request, 'edit_transaction.html', {'form': form, 'transaction': transaction, 'edit_url': edit_url})
+
+
+# def edit_transaction(request, transaction_id):
+#     # ログインユーザーに紐づくTransactionを取得
+#     transaction = get_object_or_404(Transaction, pk=transaction_id, user=request.user)
+
+#     if request.method == 'POST':
+#         # フォームからのデータをもとにTransactionを更新
+#         form = TransactionForm(request.user, request.POST, instance=transaction)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('accounts:user')  # 編集後に遷移するページを適切に指定
+#     else:
+#         # GETリクエストの場合は編集フォームを表示
+#         form = TransactionForm(request.user, instance=transaction)
+
+#     return render(request, 'edit.html', {'form': form, 'transaction': transaction})
+
+# from django.contrib import messages
+# from django.shortcuts import redirect
+
+# class BalanceEditView(View):
+#     template_name = 'edit.html'
+#     form_class = TransactionForm
+
+#     def get(self, request, pk=None, *args, **kwargs):
+#         if request.user.is_authenticated:
+#             if pk is not None:
+#                 try:
+#                     balance_entry = Transaction.objects.get(pk=pk)
+#                     initial_data = {'name_1': balance_entry.name_1, 'name_2': balance_entry.name_2} if balance_entry else {}
+#                     form = self.form_class(user=request.user, instance=balance_entry, initial=initial_data)
+#                     return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
+#                 except Transaction.DoesNotExist:
+#                     # データベース上で対応する pk のオブジェクトが存在しない場合の処理
+#                     messages.error(request, '指定されたデータが存在しません。')
+#             else:
+#                 # pk が指定されていない場合の処理
+#                 messages.error(request, 'データの編集には正しい識別子が必要です。')
+
+#             # エラーが発生した場合は元のページにリダイレクトする
+#             return redirect('household_budget:balance')
+#         else:
+#             return HttpResponseRedirect(reverse('login'))
+# class BalanceEditView(View):
+#     template_name = 'edit.html'
+#     form_class = TransactionForm
+
+#     def get(self, request, pk=None, *args, **kwargs):
+#         if request.user.is_authenticated:
+#             balance_entry = Transaction.objects.get(pk=pk) if pk else None
+#             initial_data = {'name_1': balance_entry.name_1, 'name_2': balance_entry.name_2} if balance_entry else {}
+#             form = self.form_class(user=request.user, instance=balance_entry, initial=initial_data)
+#             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
+#         else:
+#             return HttpResponseRedirect(reverse('login'))
+
+#     def post(self, request, pk=None, *args, **kwargs):
+#         balance_entry = Transaction.objects.get(pk=pk) if pk else None
+#         form = self.form_class(request.user, request.POST, instance=balance_entry)
+#         if form.is_valid():
+#             instance = form.save(commit=False)
+#             instance.user = request.user
+#             instance.save()
+#             return redirect('household_budget:balance')
+#         else:
+#             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
+
+
 #今月の削除画面
 class BalanceDeleteView(View):
     template_name = 'b_delete.html'
-    
+
     def get(self, request, pk, *args, **kwargs):
         balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
         return render(request, self.template_name, {'balance_entry': balance_entry})
@@ -228,6 +290,111 @@ class BalanceDeleteView(View):
         balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
         balance_entry.delete()
         return HttpResponseRedirect(reverse('household_budget:balance'))
+
+
+# class BalanceEditView(View):
+#     template_name = 'edit.html'
+#     form_class = TransactionForm
+
+#     def get_object_or_404(self, pk):
+#         try:
+#             return Transaction.objects.get(pk=pk)
+#         except Transaction.DoesNotExist:
+#             raise Http404
+
+#     def get(self, request, pk, *args, **kwargs):
+#         # オブジェクトの取得
+#         balance_entry = self.get_object_or_404(pk)
+
+#         # ユーザーの権限を確認
+#         if balance_entry.user != request.user:
+#             raise PermissionDenied("このオブジェクトにアクセスする権限がありません。")
+
+#         # フォームの初期データを設定
+#         initial_data = {
+#             'name_1': balance_entry.name_1,
+#             'name_2': balance_entry.name_2,
+#             'event_date': balance_entry.event_date,
+#             'category': balance_entry.category,
+#             'payment_type': balance_entry.payment_type,
+#             'vendor_name': balance_entry.vendor_name,
+#             'amount': balance_entry.amount,
+#             'memo': balance_entry.memo
+#         }
+
+#         # フォームを作成
+#         form = self.form_class(instance=balance_entry, initial=initial_data, user=request.user)
+
+#         return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
+
+#     def post(self, request, pk, *args, **kwargs):
+#         # オブジェクトの取得
+#         balance_entry = self.get_object_or_404(pk)
+
+#         # ユーザーの権限を確認
+#         if balance_entry.user != request.user:
+#             raise PermissionDenied("このオブジェクトにアクセスする権限がありません。")
+
+#         # フォームの作成とデータの保存
+#         form = self.form_class(request.POST, instance=balance_entry, user=request.user) # type: ignore
+
+#         if form.is_valid():
+#             instance = form.save(commit=False)
+#             instance.user = request.user
+#             instance.save()
+#             return redirect('household_budget:balance')
+#         else:
+#             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})        
+        
+#         # class BalanceEditView(View):
+# #     template_name = 'edit.html'
+# #     form_class = TransactionForm
+
+# #     def get(self, request, pk=None, *args, **kwargs):
+# #         if request.user.is_authenticated:
+# #             balance_entry = Transaction.objects.get(pk=pk) if pk else None
+# #             initial_data = {'name_1': balance_entry.name_1, 'name_2': balance_entry.name_2} if balance_entry else {}
+# #             form = self.form_class(user=request.user, instance=balance_entry, initial=initial_data)
+# #             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
+# #         else:
+# #             return HttpResponseRedirect(reverse('login'))
+
+# #     def post(self, request, pk=None, *args, **kwargs):
+# #         balance_entry = Transaction.objects.get(pk=pk) if pk else None
+# #         form = self.form_class(request.user, request.POST, instance=balance_entry)
+# #         if form.is_valid():
+# #             instance = form.save(commit=False)
+# #             instance.user = request.user
+# #             instance.save()
+# #             return redirect('household_budget:balance')
+# #         else:
+# #             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})    
+                             
+                  
+# # #今月の削除画面
+# class BalanceDeleteView(View):
+#     model = Transaction
+#     template_name = 'delete.html'
+#     context_object_name = 'transaction'
+#     success_url = reverse_lazy('household_budget:balance')
+
+#     def get_object(self, queryset=None):
+#         obj = get_object_or_404(self.model, pk=self.kwargs['pk'])
+#         if obj.user != self.request.user:
+#             raise PermissionDenied("You do not have permission to access this object.")
+#         return obj
+
+# class BalanceDeleteView(View):
+#     template_name = 'b_delete.html'
+    
+#     def get(self, request, pk, *args, **kwargs):
+#         balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
+#         return render(request, self.template_name, {'balance_entry': balance_entry})
+
+#     def post(self, request, pk, *args, **kwargs):
+#         balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
+#         balance_entry.delete()
+#         return HttpResponseRedirect(reverse('household_budget:balance'))
 
     
 
@@ -328,88 +495,118 @@ def reset_goal(request):
 
     
 #収支データ
-class M_DataView(View):
-    template_name = 'm_data.html'
+class M_DataView(TemplateView):
+    template_name = 'm_data.html'  # 作成するHTMLテンプレートの名前に変更してください
 
-    def get(self, request, *args, **kwargs):
-        requested_year = kwargs.get('year')
-        requested_month = kwargs.get('month')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-        if requested_year is not None and requested_month is not None:
-            requested_year_month_str = f"{requested_year}-{requested_month}"
-        else:
-            return HttpResponse('Invalid URL format')
+        # URLから年と月を取得
+        year = self.kwargs.get('year')
+        month = self.kwargs.get('month')
 
-        try:
-            requested_year_month = datetime.strptime(requested_year_month_str, "%Y-%m")
-        except ValueError:
-            return HttpResponse('Invalid date format')
+        # 月ごとの集計データを取得
+        monthly_summary = Transaction.objects.filter(event_date__year=year, event_date__month=month)\
+            .values('category__category_name')\
+            .annotate(total_amount=Sum('amount'))
 
-        user = request.user
+        # 月ごとの詳細データを取得
+        monthly_details = Transaction.objects.filter(event_date__year=year, event_date__month=month)
 
         # 最新の予算データを取得
-        latest_budget = self.get_latest_budget(user, requested_year_month)
+        latest_budget = Budget.objects.filter(event_date__year=year, event_date__month=month).latest('event_date')
 
-        # 各項目の合計を計算
-        item_totals = self.calculate_item_totals(user, requested_year_month)
+        context['year'] = year
+        context['month'] = month
+        context['monthly_summary'] = monthly_summary
+        context['monthly_details'] = monthly_details
+        context['latest_budget'] = latest_budget
 
-        # 指定された月のデータを取得
-        monthly_data = Transaction.objects.filter(
-            user=user,
-            event_date__year=requested_year_month.year,
-            event_date__month=requested_year_month.month,
-        )
+        return context
+    
+    
+# class M_DataView(View):
+#     template_name = 'm_data.html'
 
-        context = {
-            'monthly_data': monthly_data,
-            'requested_year_month': requested_year_month,
-            'latest_budget': latest_budget,
-            'item_totals': item_totals,
-        }
+#     def get(self, request, *args, **kwargs):
+#         requested_year = kwargs.get('year')
+#         requested_month = kwargs.get('month')
 
-        return render(request, self.template_name, context)
+#         if requested_year is not None and requested_month is not None:
+#             requested_year_month_str = f"{requested_year}-{requested_month}"
+#         else:
+#             return HttpResponse('Invalid URL format')
 
-    def get_latest_budget(self, user, requested_year_month):
-    # 指定された月の予算データを取得
-        latest_budget_queryset = Budget.objects.filter(
-        user=user,
-        event_date__year=requested_year_month.year,
-        event_date__month=requested_year_month.month,
-    ).order_by('-event_date')
+#         try:
+#             requested_year_month = datetime.strptime(requested_year_month_str, "%Y-%m")
+#         except ValueError:
+#             return HttpResponse('Invalid date format')
 
-        if latest_budget_queryset.exists():
-           return latest_budget_queryset.first()
+#         user = request.user
 
-    # 指定された月の予算データがない場合は、ユーザーの最も最近のデータを利用
-        return Budget.objects.filter(user=user).order_by('-event_date').first()
+#         # 最新の予算データを取得
+#         latest_budget = self.get_latest_budget(user, requested_year_month)
+
+#         # 各項目の合計を計算
+#         item_totals = self.calculate_item_totals(user, requested_year_month)
+
+#         # 指定された月のデータを取得
+#         monthly_data = Transaction.objects.filter(
+#             user=user,
+#             event_date__year=requested_year_month.year,
+#             event_date__month=requested_year_month.month,
+#         )
+
+#         context = {
+#             'monthly_data': monthly_data,
+#             'requested_year_month': requested_year_month,
+#             'latest_budget': latest_budget,
+#             'item_totals': item_totals,
+#         }
+
+#         return render(request, self.template_name, context)
+
+#     def get_latest_budget(self, user, requested_year_month):
+#     # 指定された月の予算データを取得
+#         latest_budget_queryset = Budget.objects.filter(
+#         user=user,
+#         event_date__year=requested_year_month.year,
+#         event_date__month=requested_year_month.month,
+#     ).order_by('-event_date')
+
+#         if latest_budget_queryset.exists():
+#            return latest_budget_queryset.first()
+
+#     # 指定された月の予算データがない場合は、ユーザーの最も最近のデータを利用
+#         return Budget.objects.filter(user=user).order_by('-event_date').first()
 
 
-    def calculate_item_totals(self, user, requested_year_month):
-        # 指定された月の各項目の合計を計算
-        monthly_data = Transaction.objects.filter(
-            user=user,
-            event_date__year=requested_year_month.year,
-            event_date__month=requested_year_month.month,
-        )
+#     def calculate_item_totals(self, user, requested_year_month):
+#         # 指定された月の各項目の合計を計算
+#         monthly_data = Transaction.objects.filter(
+#             user=user,
+#             event_date__year=requested_year_month.year,
+#             event_date__month=requested_year_month.month,
+#         )
              
 
-        item_totals = {
-            'rent': monthly_data.aggregate(Sum('rent'))['rent__sum'] or 0,
-            'water_supply': monthly_data.aggregate(Sum('water_supply'))['water_supply__sum'] or 0,
-            'gas': monthly_data.aggregate(Sum('gas'))['gas__sum'] or 0,
-            'electricity': monthly_data.aggregate(Sum('electricity'))['electricity__sum'] or 0,
-            'food_expenses': monthly_data.aggregate(Sum('food_expenses'))['food_expenses__sum'] or 0,
-            'communication_expenses': monthly_data.aggregate(Sum('communication_expenses'))['communication_expenses__sum'] or 0,
-            'transportation_expenses': monthly_data.aggregate(Sum('transportation_expenses'))['transportation_expenses__sum'] or 0,
-            'insurance_fee': monthly_data.aggregate(Sum('insurance_fee'))['insurance_fee__sum'] or 0,
-            'daily_necessities': monthly_data.aggregate(Sum('daily_necessities'))['daily_necessities__sum'] or 0,
-            'medical_bills': monthly_data.aggregate(Sum('medical_bills'))['medical_bills__sum'] or 0,
-            'entertainment_expenses': monthly_data.aggregate(Sum('entertainment_expenses'))['entertainment_expenses__sum'] or 0,
-            'saving': monthly_data.aggregate(Sum('saving'))['saving__sum'] or 0,
-            'add_item': monthly_data.aggregate(Sum('add_item'))['add_item__sum'] or 0,
-        }
+#         item_totals = {
+#             'rent': monthly_data.aggregate(Sum('rent'))['rent__sum'] or 0,
+#             'water_supply': monthly_data.aggregate(Sum('water_supply'))['water_supply__sum'] or 0,
+#             'gas': monthly_data.aggregate(Sum('gas'))['gas__sum'] or 0,
+#             'electricity': monthly_data.aggregate(Sum('electricity'))['electricity__sum'] or 0,
+#             'food_expenses': monthly_data.aggregate(Sum('food_expenses'))['food_expenses__sum'] or 0,
+#             'communication_expenses': monthly_data.aggregate(Sum('communication_expenses'))['communication_expenses__sum'] or 0,
+#             'transportation_expenses': monthly_data.aggregate(Sum('transportation_expenses'))['transportation_expenses__sum'] or 0,
+#             'insurance_fee': monthly_data.aggregate(Sum('insurance_fee'))['insurance_fee__sum'] or 0,
+#             'daily_necessities': monthly_data.aggregate(Sum('daily_necessities'))['daily_necessities__sum'] or 0,
+#             'medical_bills': monthly_data.aggregate(Sum('medical_bills'))['medical_bills__sum'] or 0,
+#             'entertainment_expenses': monthly_data.aggregate(Sum('entertainment_expenses'))['entertainment_expenses__sum'] or 0,
+#             'saving': monthly_data.aggregate(Sum('saving'))['saving__sum'] or 0,
+#             'add_item': monthly_data.aggregate(Sum('add_item'))['add_item__sum'] or 0,
+#         }
         
-        return item_totals
+#         return item_totals
 
 
 #前月比
