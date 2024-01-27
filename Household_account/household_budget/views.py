@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.db.models import Sum
-from .models import Transaction, Budget, Goal_Saving, Vendor
+from household_budget.models import Transaction, Budget, Goal_Saving, Vendor
 from django.contrib.auth.decorators import login_required
 from .forms import TransactionForm, SavingForm, BudgetForm, VendorForm
 from django.views.generic.list import ListView
@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib import messages
+from django.views.generic import TemplateView
+from django.db.models.functions import TruncMonth
 
 
 # 収支登録画面
@@ -281,32 +283,109 @@ class TransactionView(ListView):
         return context
     
 
-#貯金画面(ログインが必要)
+# 貯金画面(ログインが必要)
 @method_decorator(login_required, name='dispatch')
-class SavingListView(ListView):
+class SavingListView(TemplateView):
     template_name = 'savings.html'
-    model = Transaction
-
-    def get_queryset(self):
-        # ユーザーごとに月ごとの貯金額を集計する
-        return Transaction.objects.filter(user=self.request.user).values('event_date__year', 'event_date__month').annotate(total_savings=Sum('saving'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        user = self.request.user
-
-        monthly_savings = self.get_queryset()
-        context['monthly_savings'] = monthly_savings
-
-        total_savings = monthly_savings.aggregate(total_savings=Sum('saving'))['total_savings']
-        context['total_savings'] = total_savings if total_savings is not None else 0
         
+        # ログインユーザーのIDを取得
+        user_id = self.request.user.pk
+
+        # categoryのIDが13でフィルタリング
+        transactions_category_13 = Transaction.objects.filter(user_id=user_id, category_id=13)
+
+        # 月ごとの合計金額を計算
+        monthly_summary = transactions_category_13.annotate(month=TruncMonth('event_date')).values('month').annotate(total_amount=Sum('amount'))
+
+        # 総合計金額を計算
+        total_amount = transactions_category_13.aggregate(total_amount=Sum('amount'))['total_amount']
+
         # 最新の貯金目標を取得
-        latest_goal = Goal_Saving.objects.filter(user=user).order_by('-timestamp').first()
-        context['latest_goal'] = latest_goal
+        latest_savings_goal = Goal_Saving.objects.filter(user_id=user_id, savings_goal__isnull=False).order_by('-timestamp').first()
+
+        context['monthly_summary'] = monthly_summary
+        context['total_amount'] = total_amount
+        context['latest_savings_goal'] = latest_savings_goal
 
         return context
+
+# # SavingListView クラスの修正
+# @method_decorator(login_required, name='dispatch')
+# class SavingListView(ListView):
+#     template_name = 'savings.html'
+#     model = Transaction
+
+#     def get_queryset(self):
+#         # ユーザーごとに月ごとの貯金額を集計する
+#         return Transaction.objects.filter(user=self.request.user, category_id=13).values('event_date__year', 'event_date__month').annotate(total_savings=Sum('amount'))
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         # 'monthly_savings'が存在しない場合はデフォルトで空のリストを代入
+#         monthly_savings = context.get('monthly_savings', [])
+
+#         # total_savingsを計算
+#         total_savings = sum(item['total_savings'] for item in monthly_savings) if monthly_savings else 0
+
+#         # ユーザーの最新の貯金目標を取得
+#         user = self.request.user
+#         latest_goal = Goal_Saving.objects.filter(user=user).order_by('-timestamp').first()
+
+#         # 各月の金額情報をmonthly_savingsに追加
+#         for item in monthly_savings:
+#             # トランザクションの金額を取得
+#             transactions = Transaction.objects.filter(
+#                 user=user,
+#                 category_id=13,
+#                 event_date__year=item['event_date__year'],
+#                 event_date__month=item['event_date__month']
+#             )
+
+#             # 金額の合計を計算し、monthly_savingsに追加
+#             item['monthly_amounts'] = sum(transaction.amount for transaction in transactions)
+
+#         # contextに必要な情報を設定
+#         context['monthly_savings'] = monthly_savings
+#         context['total_savings'] = total_savings
+#         context['latest_goal'] = latest_goal
+
+#         return context
+
+
+
+
+# #貯金画面(ログインが必要)
+# @method_decorator(login_required, name='dispatch')
+# class SavingListView(ListView):
+#     template_name = 'savings.html'
+#     model = Transaction
+
+#     def get_queryset(self):
+#         # ユーザーごとに月ごとの貯金額を集計する
+#         return Transaction.objects.filter(user=self.request.user, category_id=13).values('event_date__year', 'event_date__month').annotate(total_savings=Sum('amount'))
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         monthly_savings = context.get('monthly_savings', [])
+#         context['monthly_savings'] = monthly_savings
+
+#         user = self.request.user
+
+#         monthly_savings = context['monthly_savings']
+#         context['monthly_savings'] = monthly_savings
+
+#         total_savings = monthly_savings.aggregate(total_savings=Sum('amount'))['total_savings']
+#         context['total_savings'] = total_savings if total_savings is not None else 0
+        
+#         # 最新の貯金目標を取得
+#         latest_goal = Goal_Saving.objects.filter(user=user).order_by('-timestamp').first()
+#         context['latest_goal'] = latest_goal
+
+#         return context
 
 
 #貯金目標登録
