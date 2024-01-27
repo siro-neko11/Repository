@@ -18,7 +18,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for entry in monthly_summary %}
+                {% for entry in sorted_monthly_summary %}
                     <tr>
                         <td>{{ entry.category__category_name }}</td>
                         <td>{{ entry.total_amount }}</td>

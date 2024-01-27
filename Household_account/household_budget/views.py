@@ -40,7 +40,7 @@ class TransactionRegistView(View):
             vendor, created = Vendor.objects.get_or_create(vendor_name=vendor_name, user=request.user)
             form.instance.vendor_name = vendor
             form.save()
-            return redirect('household_budget:b_regist')  # 保存後に収支登録画面にリダイレクト
+            return redirect('accounts:user') 
         else:
             transactions = Transaction.objects.all()
             return render(request, self.template_name, {'transactions': transactions, 'form': form})
@@ -232,7 +232,6 @@ class BalanceDeleteView(View):
     
 
 #収支画面(ログインが必要)
-
 class TransactionView(TemplateView):
     template_name = 'balance.html'
 
@@ -250,40 +249,24 @@ class TransactionView(TemplateView):
 
         # categoryごとに集計
         monthly_summary = transactions.values('category__category_name').annotate(total_amount=Sum('amount'))
+        
+        # カテゴリーIDでソート
+        sorted_monthly_summary = sorted(
+            monthly_summary,
+            key=lambda x: x['category__category_name']
+        )
+        
+        context['sorted_monthly_summary'] = sorted_monthly_summary
 
         # 日付、name1、name2も表示する
         detailed_transactions = transactions.values(
             'event_date', 'name_1', 'name_2', 'category__category_name', 'amount',
             'payment_type__payment_type', 'vendor_name__vendor_name', 'memo')
 
-        context['monthly_summary'] = monthly_summary
         context['detailed_transactions'] = detailed_transactions
 
         return context
-    
-    # class TransactionView(ListView):
-#     template_name = 'balance.html'
-#     model = Transaction
-#     context_object_name = 'balance_list'
-    
-#     @method_decorator(login_required)
-#     def dispatch(self, *args, **kwargs):
-#         return super().dispatch(*args, **kwargs)
-    
-#     def get_queryset(self):
-#         return Transaction.objects.filter(user=self.request.user)
-    
-#     #今月の表示
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['now'] = datetime.now()
-
-#     # 先月のデータを取得
-#         last_month = datetime.now() - timedelta(days=datetime.now().day)
-#         context['last_month'] = last_month
         
-#         return context
-    
 
 # 貯金画面(ログインが必要)
 @method_decorator(login_required, name='dispatch')
