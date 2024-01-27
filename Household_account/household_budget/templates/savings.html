@@ -41,22 +41,3 @@
     </div>
 {% endblock %}
 
-
-{% comment %} {% extends 'base.html' %}
-
-{% block content %}
-  <h2>Monthly Transaction Summary</h2>
-
-  <h3>Monthly Summary</h3>
-  <ul>
-    {% for entry in monthly_summary %}
-      <li>{{ entry.month|date:"F Y" }}: {{ entry.total_amount }}</li>
-    {% endfor %}
-  </ul>
-
-  <h3>Total Amount for Category 13</h3>
-  <p>{{ total_amount }}</p>
-{% endblock %} {% endcomment %}
-
-
-
