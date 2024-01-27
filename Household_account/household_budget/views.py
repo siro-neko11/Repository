@@ -13,6 +13,7 @@ from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.views.generic import TemplateView
 from django.db.models.functions import TruncMonth
+from django.utils import timezone
 
 
 # 収支登録画面
@@ -43,35 +44,7 @@ class TransactionRegistView(View):
         else:
             transactions = Transaction.objects.all()
             return render(request, self.template_name, {'transactions': transactions, 'form': form})
-        
-        #     def get(self, request, *args, **kwargs):
-#         last_entry = Transaction.objects.filter(user=request.user).last()
-#         initial_data = {'name_1': last_entry.name_1, 'name_2': last_entry.name_2} if last_entry else {}
-#         form = self.form_class(user=request.user, initial=initial_data)
-#         return render(request, self.template_name, {'form': form})
-    
-#     def post(self, request, *args, **kwargs):
-#         form = self.form_class(request.user, request.POST)
-#         if form.is_valid():
-#             name_1 = form.cleaned_data['name_1']
-#             name_2 = form.cleaned_data['name_2']
             
-#             payment_destination = form.cleaned_data['payment_destination']
-
-#             if name_1 or name_2:
-#                 instance = form.save(commit=False)
-#                 instance.user = request.user
-#                 instance.payment_destination = payment_destination  # フォームから直接取得するように修正
-#                 instance.save()
-#                 messages.success(request, '収支データが保存されました。')
-#                 return redirect('accounts:user')
-#             else:
-#                 messages.error(request, '名前１または名前２のどちらか一方は入力してください。')
-#         else:
-#             messages.error(request, 'エラーが発生しました。データは保存されませんでした.')
-        
-#         return render(request, self.template_name, {'form': form})
-    
 
 #支払先登録
 class AddPaymentDestinationView(View):
@@ -259,28 +232,57 @@ class BalanceDeleteView(View):
     
 
 #収支画面(ログインが必要)
-class TransactionView(ListView):
+
+class TransactionView(TemplateView):
     template_name = 'balance.html'
-    model = Transaction
-    context_object_name = 'balance_list'
-    
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-    
-    def get_queryset(self):
-        return Transaction.objects.filter(user=self.request.user)
-    
-    #今月の表示
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['now'] = datetime.now()
 
-    # 先月のデータを取得
-        last_month = datetime.now() - timedelta(days=datetime.now().day)
-        context['last_month'] = last_month
-        
+        # 今月のデータだけを取得
+        current_month = timezone.now().replace(day=1)  # 現在の月の1日を取得
+
+        transactions = Transaction.objects.filter(
+            user=self.request.user,
+            event_date__year=current_month.year,
+            event_date__month=current_month.month
+        )
+
+        # categoryごとに集計
+        monthly_summary = transactions.values('category__category_name').annotate(total_amount=Sum('amount'))
+
+        # 日付、name1、name2も表示する
+        detailed_transactions = transactions.values(
+            'event_date', 'name_1', 'name_2', 'category__category_name', 'amount',
+            'payment_type__payment_type', 'vendor_name__vendor_name', 'memo')
+
+        context['monthly_summary'] = monthly_summary
+        context['detailed_transactions'] = detailed_transactions
+
         return context
+    
+    # class TransactionView(ListView):
+#     template_name = 'balance.html'
+#     model = Transaction
+#     context_object_name = 'balance_list'
+    
+#     @method_decorator(login_required)
+#     def dispatch(self, *args, **kwargs):
+#         return super().dispatch(*args, **kwargs)
+    
+#     def get_queryset(self):
+#         return Transaction.objects.filter(user=self.request.user)
+    
+#     #今月の表示
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['now'] = datetime.now()
+
+#     # 先月のデータを取得
+#         last_month = datetime.now() - timedelta(days=datetime.now().day)
+#         context['last_month'] = last_month
+        
+#         return context
     
 
 # 貯金画面(ログインが必要)
