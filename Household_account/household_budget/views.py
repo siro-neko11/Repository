@@ -119,7 +119,7 @@ class PaymentDestinationListView(View):
 def set_budget(request):
     now = datetime.now()
 
-    # event_date に現在の日時を使用してフィルタリング
+    # event_date に現在の年月を使用してフィルタリング
     budgets = Budget.objects.filter(user=request.user, event_date__month=now.month, event_date__year=now.year)
 
     if budgets.exists():
@@ -138,7 +138,6 @@ def set_budget(request):
         form = BudgetForm(instance=budget)
 
     return render(request, 'household_budget/set_budget.html', {'form': form, 'current_budget': budget})
-
 
 # #予算表示画面
 # class BudgetList(TemplateView):
