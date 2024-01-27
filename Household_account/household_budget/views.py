@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.db.models import Sum
-from household_budget.models import Transaction, Budget, Goal_Saving, Vendor
+from household_budget.models import Transaction, Budget, Goal_Saving, Vendor, Category
 from django.contrib.auth.decorators import login_required
 from .forms import TransactionForm, SavingForm, BudgetForm, VendorForm
 from django.views.generic.list import ListView
@@ -139,79 +139,6 @@ def set_budget(request):
 
     return render(request, 'household_budget/set_budget.html', {'form': form, 'current_budget': budget})
 
-# #予算表示画面
-# class BudgetList(TemplateView):
-#     template_name = 'm_data.html'
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-        
-#         # URLから年と月を取得
-#         year = kwargs.get('year')
-#         month = kwargs.get('month')
-        
-#         # 最新の予算データを取得
-#         latest_budget = get_object_or_404(
-#             Budget,
-#             user=self.request.user,
-#             event_date__year=year,
-#             event_date__month=month
-#         )
-        
-#         context['latest_budget'] = latest_budget
-#         return context
-# class BudgetList(ListView):
-#     template_name = 'budget_list.html'
-#     model = Budget 
-#     context_object_name = 'budget_list'
-    
-#     @method_decorator(login_required)
-#     def dispatch(self, *args, **kwargs):
-#         return super().dispatch(*args, **kwargs)
-    
-#     def get_queryset(self):
-#         return Budget.objects.filter(user=self.request.user)
-    
-#     #今月の表示
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['now'] = datetime.now()
-        
-#          # 今月の収支データを取得し、コンテキストに追加
-#         monthly_totals = self.get_monthly_totals()
-#         context['monthly_totals'] = monthly_totals
-        
-#         return context
-        
- 
-    # # 今月の収支データを取得するメソッド
-    # def get_monthly_totals(self):
-    #     user = self.request.user
-    #     today = datetime.now().date()
-    #     first_day_of_month = today.replace(day=1)
-    #     last_day_of_month = today.replace(day=28) + timedelta(days=4)
-    #     last_day_of_month = last_day_of_month - timedelta(days=last_day_of_month.day)
-        
-    #     monthly_data = Transaction.objects.filter(user=user, event_date__range=[first_day_of_month, last_day_of_month])
-        
-    #     monthly_totals = {
-    #         'rent': monthly_data.aggregate(Sum('rent'))['rent__sum'] or 0,
-    #         'water_supply': monthly_data.aggregate(Sum('water_supply'))['water_supply__sum'] or 0,
-    #         'gas': monthly_data.aggregate(Sum('gas'))['gas__sum'] or 0,
-    #         'electricity': monthly_data.aggregate(Sum('electricity'))['electricity__sum'] or 0,
-    #         'food_expenses': monthly_data.aggregate(Sum('food_expenses'))['food_expenses__sum'] or 0,
-    #         'communication_expenses': monthly_data.aggregate(Sum('communication_expenses'))['communication_expenses__sum'] or 0,
-    #         'transportation_expenses': monthly_data.aggregate(Sum('transportation_expenses'))['transportation_expenses__sum'] or 0,
-    #         'insurance_fee': monthly_data.aggregate(Sum('insurance_fee'))['insurance_fee__sum'] or 0,
-    #         'daily_necessities': monthly_data.aggregate(Sum('daily_necessities'))['daily_necessities__sum'] or 0,
-    #         'medical_bills': monthly_data.aggregate(Sum('medical_bills'))['medical_bills__sum'] or 0,
-    #         'entertainment_expenses': monthly_data.aggregate(Sum('entertainment_expenses'))['entertainment_expenses__sum'] or 0,
-    #         'saving': monthly_data.aggregate(Sum('saving'))['saving__sum'] or 0,
-    #         'add_item': monthly_data.aggregate(Sum('add_item'))['add_item__sum'] or 0,
-    #     }
-        
-    #     return monthly_totals
-
 
 # 今月のデータ編集
 def edit_transaction(request, transaction_id):
@@ -230,72 +157,6 @@ def edit_transaction(request, transaction_id):
     return render(request, 'edit_transaction.html', {'form': form, 'transaction': transaction, 'edit_url': edit_url})
 
 
-# def edit_transaction(request, transaction_id):
-#     # ログインユーザーに紐づくTransactionを取得
-#     transaction = get_object_or_404(Transaction, pk=transaction_id, user=request.user)
-
-#     if request.method == 'POST':
-#         # フォームからのデータをもとにTransactionを更新
-#         form = TransactionForm(request.user, request.POST, instance=transaction)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('accounts:user')  # 編集後に遷移するページを適切に指定
-#     else:
-#         # GETリクエストの場合は編集フォームを表示
-#         form = TransactionForm(request.user, instance=transaction)
-
-#     return render(request, 'edit.html', {'form': form, 'transaction': transaction})
-
-# from django.contrib import messages
-# from django.shortcuts import redirect
-
-# class BalanceEditView(View):
-#     template_name = 'edit.html'
-#     form_class = TransactionForm
-
-#     def get(self, request, pk=None, *args, **kwargs):
-#         if request.user.is_authenticated:
-#             if pk is not None:
-#                 try:
-#                     balance_entry = Transaction.objects.get(pk=pk)
-#                     initial_data = {'name_1': balance_entry.name_1, 'name_2': balance_entry.name_2} if balance_entry else {}
-#                     form = self.form_class(user=request.user, instance=balance_entry, initial=initial_data)
-#                     return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
-#                 except Transaction.DoesNotExist:
-#                     # データベース上で対応する pk のオブジェクトが存在しない場合の処理
-#                     messages.error(request, '指定されたデータが存在しません。')
-#             else:
-#                 # pk が指定されていない場合の処理
-#                 messages.error(request, 'データの編集には正しい識別子が必要です。')
-
-#             # エラーが発生した場合は元のページにリダイレクトする
-#             return redirect('household_budget:balance')
-#         else:
-#             return HttpResponseRedirect(reverse('login'))
-# class BalanceEditView(View):
-#     template_name = 'edit.html'
-#     form_class = TransactionForm
-
-#     def get(self, request, pk=None, *args, **kwargs):
-#         if request.user.is_authenticated:
-#             balance_entry = Transaction.objects.get(pk=pk) if pk else None
-#             initial_data = {'name_1': balance_entry.name_1, 'name_2': balance_entry.name_2} if balance_entry else {}
-#             form = self.form_class(user=request.user, instance=balance_entry, initial=initial_data)
-#             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
-#         else:
-#             return HttpResponseRedirect(reverse('login'))
-
-#     def post(self, request, pk=None, *args, **kwargs):
-#         balance_entry = Transaction.objects.get(pk=pk) if pk else None
-#         form = self.form_class(request.user, request.POST, instance=balance_entry)
-#         if form.is_valid():
-#             instance = form.save(commit=False)
-#             instance.user = request.user
-#             instance.save()
-#             return redirect('household_budget:balance')
-#         else:
-#             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
-
 
 #今月の削除画面
 class BalanceDeleteView(View):
@@ -309,112 +170,6 @@ class BalanceDeleteView(View):
         balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
         balance_entry.delete()
         return HttpResponseRedirect(reverse('household_budget:balance'))
-
-
-# class BalanceEditView(View):
-#     template_name = 'edit.html'
-#     form_class = TransactionForm
-
-#     def get_object_or_404(self, pk):
-#         try:
-#             return Transaction.objects.get(pk=pk)
-#         except Transaction.DoesNotExist:
-#             raise Http404
-
-#     def get(self, request, pk, *args, **kwargs):
-#         # オブジェクトの取得
-#         balance_entry = self.get_object_or_404(pk)
-
-#         # ユーザーの権限を確認
-#         if balance_entry.user != request.user:
-#             raise PermissionDenied("このオブジェクトにアクセスする権限がありません。")
-
-#         # フォームの初期データを設定
-#         initial_data = {
-#             'name_1': balance_entry.name_1,
-#             'name_2': balance_entry.name_2,
-#             'event_date': balance_entry.event_date,
-#             'category': balance_entry.category,
-#             'payment_type': balance_entry.payment_type,
-#             'vendor_name': balance_entry.vendor_name,
-#             'amount': balance_entry.amount,
-#             'memo': balance_entry.memo
-#         }
-
-#         # フォームを作成
-#         form = self.form_class(instance=balance_entry, initial=initial_data, user=request.user)
-
-#         return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
-
-#     def post(self, request, pk, *args, **kwargs):
-#         # オブジェクトの取得
-#         balance_entry = self.get_object_or_404(pk)
-
-#         # ユーザーの権限を確認
-#         if balance_entry.user != request.user:
-#             raise PermissionDenied("このオブジェクトにアクセスする権限がありません。")
-
-#         # フォームの作成とデータの保存
-#         form = self.form_class(request.POST, instance=balance_entry, user=request.user) # type: ignore
-
-#         if form.is_valid():
-#             instance = form.save(commit=False)
-#             instance.user = request.user
-#             instance.save()
-#             return redirect('household_budget:balance')
-#         else:
-#             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})        
-        
-#         # class BalanceEditView(View):
-# #     template_name = 'edit.html'
-# #     form_class = TransactionForm
-
-# #     def get(self, request, pk=None, *args, **kwargs):
-# #         if request.user.is_authenticated:
-# #             balance_entry = Transaction.objects.get(pk=pk) if pk else None
-# #             initial_data = {'name_1': balance_entry.name_1, 'name_2': balance_entry.name_2} if balance_entry else {}
-# #             form = self.form_class(user=request.user, instance=balance_entry, initial=initial_data)
-# #             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})
-# #         else:
-# #             return HttpResponseRedirect(reverse('login'))
-
-# #     def post(self, request, pk=None, *args, **kwargs):
-# #         balance_entry = Transaction.objects.get(pk=pk) if pk else None
-# #         form = self.form_class(request.user, request.POST, instance=balance_entry)
-# #         if form.is_valid():
-# #             instance = form.save(commit=False)
-# #             instance.user = request.user
-# #             instance.save()
-# #             return redirect('household_budget:balance')
-# #         else:
-# #             return render(request, self.template_name, {'form': form, 'balance_entry': balance_entry})    
-                             
-                  
-# # #今月の削除画面
-# class BalanceDeleteView(View):
-#     model = Transaction
-#     template_name = 'delete.html'
-#     context_object_name = 'transaction'
-#     success_url = reverse_lazy('household_budget:balance')
-
-#     def get_object(self, queryset=None):
-#         obj = get_object_or_404(self.model, pk=self.kwargs['pk'])
-#         if obj.user != self.request.user:
-#             raise PermissionDenied("You do not have permission to access this object.")
-#         return obj
-
-# class BalanceDeleteView(View):
-#     template_name = 'b_delete.html'
-    
-#     def get(self, request, pk, *args, **kwargs):
-#         balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
-#         return render(request, self.template_name, {'balance_entry': balance_entry})
-
-#     def post(self, request, pk, *args, **kwargs):
-#         balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
-#         balance_entry.delete()
-#         return HttpResponseRedirect(reverse('household_budget:balance'))
-
     
 
 #収支画面(ログインが必要)
@@ -549,233 +304,47 @@ class M_DataView(TemplateView):
 
         return context
     
-    
-# class M_DataView(View):
-#     template_name = 'm_data.html'
-
-#     def get(self, request, *args, **kwargs):
-#         requested_year = kwargs.get('year')
-#         requested_month = kwargs.get('month')
-
-#         if requested_year is not None and requested_month is not None:
-#             requested_year_month_str = f"{requested_year}-{requested_month}"
-#         else:
-#             return HttpResponse('Invalid URL format')
-
-#         try:
-#             requested_year_month = datetime.strptime(requested_year_month_str, "%Y-%m")
-#         except ValueError:
-#             return HttpResponse('Invalid date format')
-
-#         user = request.user
-
-#         # 最新の予算データを取得
-#         latest_budget = self.get_latest_budget(user, requested_year_month)
-
-#         # 各項目の合計を計算
-#         item_totals = self.calculate_item_totals(user, requested_year_month)
-
-#         # 指定された月のデータを取得
-#         monthly_data = Transaction.objects.filter(
-#             user=user,
-#             event_date__year=requested_year_month.year,
-#             event_date__month=requested_year_month.month,
-#         )
-
-#         context = {
-#             'monthly_data': monthly_data,
-#             'requested_year_month': requested_year_month,
-#             'latest_budget': latest_budget,
-#             'item_totals': item_totals,
-#         }
-
-#         return render(request, self.template_name, context)
-
-#     def get_latest_budget(self, user, requested_year_month):
-#     # 指定された月の予算データを取得
-#         latest_budget_queryset = Budget.objects.filter(
-#         user=user,
-#         event_date__year=requested_year_month.year,
-#         event_date__month=requested_year_month.month,
-#     ).order_by('-event_date')
-
-#         if latest_budget_queryset.exists():
-#            return latest_budget_queryset.first()
-
-#     # 指定された月の予算データがない場合は、ユーザーの最も最近のデータを利用
-#         return Budget.objects.filter(user=user).order_by('-event_date').first()
-
-
-#     def calculate_item_totals(self, user, requested_year_month):
-#         # 指定された月の各項目の合計を計算
-#         monthly_data = Transaction.objects.filter(
-#             user=user,
-#             event_date__year=requested_year_month.year,
-#             event_date__month=requested_year_month.month,
-#         )
-             
-
-#         item_totals = {
-#             'rent': monthly_data.aggregate(Sum('rent'))['rent__sum'] or 0,
-#             'water_supply': monthly_data.aggregate(Sum('water_supply'))['water_supply__sum'] or 0,
-#             'gas': monthly_data.aggregate(Sum('gas'))['gas__sum'] or 0,
-#             'electricity': monthly_data.aggregate(Sum('electricity'))['electricity__sum'] or 0,
-#             'food_expenses': monthly_data.aggregate(Sum('food_expenses'))['food_expenses__sum'] or 0,
-#             'communication_expenses': monthly_data.aggregate(Sum('communication_expenses'))['communication_expenses__sum'] or 0,
-#             'transportation_expenses': monthly_data.aggregate(Sum('transportation_expenses'))['transportation_expenses__sum'] or 0,
-#             'insurance_fee': monthly_data.aggregate(Sum('insurance_fee'))['insurance_fee__sum'] or 0,
-#             'daily_necessities': monthly_data.aggregate(Sum('daily_necessities'))['daily_necessities__sum'] or 0,
-#             'medical_bills': monthly_data.aggregate(Sum('medical_bills'))['medical_bills__sum'] or 0,
-#             'entertainment_expenses': monthly_data.aggregate(Sum('entertainment_expenses'))['entertainment_expenses__sum'] or 0,
-#             'saving': monthly_data.aggregate(Sum('saving'))['saving__sum'] or 0,
-#             'add_item': monthly_data.aggregate(Sum('add_item'))['add_item__sum'] or 0,
-#         }
-        
-#         return item_totals
-
 
 #前月比
-class MonthlyComparisonView(View):
-    def get(self, request, year, month):
-        user = request.user
-        month_comparison = self.calculate_monthly_comparison(user, int(year), int(month))
+class MonthlyComparisonView(TemplateView):
+    template_name = 'm_comparison.html'
 
-        context = {
-            'month_comparison': month_comparison,
-            'year': year,
-            'month': month,
-        }
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-        return render(request, 'm_comparison.html', context)
+        # URL から年と月を取得
+        year = self.kwargs.get('year')
+        month = self.kwargs.get('month')
 
-    def calculate_monthly_comparison(self, user, year, month):
-        current_month_data = self.get_month_data(user, year, month)
+        # 対象月のデータを取得
+        current_month_data = Transaction.objects.filter(event_date__year=year, event_date__month=month)
 
-        if month == 1:
-            last_month_data = self.get_month_data(user, year - 1, 12)
-        else:
-            last_month_data = self.get_month_data(user, year, month - 1)
+        # 前月のデータを取得
+        last_month = datetime(year, month, 1) - timedelta(days=1)
+        last_month_data = Transaction.objects.filter(event_date__year=last_month.year, event_date__month=last_month.month)
 
-        # 各項目ごとの差分を計算
-        month_comparison = {
-            'year': year,
-            'month': month,
-            'total_income_diff': (current_month_data['total_income'] or 0) - (last_month_data['total_income'] or 0),
-            'total_rent_diff': (current_month_data['total_rent'] or 0) - (last_month_data['total_rent'] or 0),
-            'total_water_supply_diff': (current_month_data['total_water_supply'] or 0) - (last_month_data['total_water_supply'] or 0),
-            'total_gas_diff': (current_month_data['total_gas'] or 0) - (last_month_data['total_gas'] or 0),
-            'total_electricity_diff': (current_month_data['total_electricity'] or 0) - (last_month_data['total_electricity'] or 0),
-            'total_food_expenses_diff': (current_month_data['total_food_expenses'] or 0) - (last_month_data['total_food_expenses'] or 0),
-            'total_communication_expenses_diff': (current_month_data['total_communication_expenses'] or 0) - (last_month_data['total_communication_expenses'] or 0),
-            'total_transportation_expenses_diff': (current_month_data['total_transportation_expenses'] or 0) - (last_month_data['total_transportation_expenses'] or 0),
-            'total_insurance_fee_diff': (current_month_data['total_insurance_fee'] or 0) - (last_month_data['total_insurance_fee'] or 0),
-            'total_daily_necessities_diff': (current_month_data['total_daily_necessities'] or 0) - (last_month_data['total_daily_necessities'] or 0),
-            'total_medical_bills_diff': (current_month_data['total_medical_bills'] or 0) - (last_month_data['total_medical_bills'] or 0),
-            'total_entertainment_expenses_diff': (current_month_data['total_entertainment_expenses'] or 0) - (last_month_data['total_entertainment_expenses'] or 0),
-            'total_saving_diff': (current_month_data['total_saving'] or 0) - (last_month_data['total_saving'] or 0),
-            'total_add_item_diff': (current_month_data['total_add_item'] or 0) - (last_month_data['total_add_item'] or 0),
-            
-            'total_fixed_expenses_diff': (
-                (current_month_data['total_rent'] or 0) +
-                (current_month_data['total_insurance_fee'] or 0) 
-            ) - (
-                (last_month_data['total_rent'] or 0) +
-                (last_month_data['total_insurance_fee'] or 0) 
-            ),
-            
-            'total_utility_costs_diff': (
-                (current_month_data['total_water_supply'] or 0) +
-                (current_month_data['total_gas'] or 0) +
-                (current_month_data['total_electricity'] or 0)
-            ) - (
-                (last_month_data['total_water_supply'] or 0) +
-                (last_month_data['total_gas'] or 0) +
-                (last_month_data['total_electricity'] or 0)
-            )
-        }
+        # カテゴリごとの合計を計算
+        current_month_totals = current_month_data.values('category__category_name').annotate(total_amount=Sum('amount'))
+        last_month_totals = last_month_data.values('category__category_name').annotate(total_amount=Sum('amount'))
 
-        return month_comparison  
+        # カテゴリの一覧を取得
+        categories = Category.objects.all()
 
-    def get_month_data(self, user, year, month):
-        # URLから受け取った年と月を元にデータを取得
-        current_month_data = Transaction.objects.filter(
-            user=user,
-            event_date__year=year,
-            event_date__month=month
-        ).aggregate(
-            total_income=Sum('income'),
-            total_rent=Sum('rent'),
-            total_water_supply=Sum('water_supply'),
-            total_gas=Sum('gas'),
-            total_electricity=Sum('electricity'),
-            total_food_expenses=Sum('food_expenses'),
-            total_communication_expenses=Sum('communication_expenses'),
-            total_transportation_expenses=Sum('transportation_expenses'),
-            total_insurance_fee=Sum('insurance_fee'),
-            total_daily_necessities=Sum('daily_necessities'),
-            total_medical_bills=Sum('medical_bills'),
-            total_entertainment_expenses=Sum('entertainment_expenses'),
-            total_saving=Sum('saving'),
-            total_add_item=Sum('add_item'),
-        )
-
-        last_month_data = Transaction.objects.filter(
-            user=user,
-            event_date__year=year,
-            event_date__month=month - 1 if month > 1 else 12,
-        ).aggregate(
-            total_income=Sum('income'),
-            total_rent=Sum('rent'),
-            total_water_supply=Sum('water_supply'),
-            total_gas=Sum('gas'),
-            total_electricity=Sum('electricity'),
-            total_food_expenses=Sum('food_expenses'),
-            total_communication_expenses=Sum('communication_expenses'),
-            total_transportation_expenses=Sum('transportation_expenses'),
-            total_insurance_fee=Sum('insurance_fee'),
-            total_daily_necessities=Sum('daily_necessities'),
-            total_medical_bills=Sum('medical_bills'),
-            total_entertainment_expenses=Sum('entertainment_expenses'),
-            total_saving=Sum('saving'),
-            total_add_item=Sum('add_item'),
-        )
-
-        # 各項目ごとの差分を計算
-        month_data = {
-            'total_income': (current_month_data['total_income'] or 0),
-            'total_rent': (current_month_data['total_rent'] or 0),
-            'total_water_supply': (current_month_data['total_water_supply'] or 0),
-            'total_gas': (current_month_data['total_gas'] or 0),
-            'total_electricity': (current_month_data['total_electricity'] or 0),
-            'total_food_expenses': (current_month_data['total_food_expenses'] or 0),
-            'total_communication_expenses': (current_month_data['total_communication_expenses'] or 0),
-            'total_transportation_expenses': (current_month_data['total_transportation_expenses'] or 0),
-            'total_insurance_fee': (current_month_data['total_insurance_fee'] or 0),
-            'total_daily_necessities': (current_month_data['total_daily_necessities'] or 0),
-            'total_medical_bills': (current_month_data['total_medical_bills'] or 0),
-            'total_entertainment_expenses': (current_month_data['total_entertainment_expenses'] or 0),
-            'total_saving': (current_month_data['total_saving'] or 0),
-            'total_add_item': (current_month_data['total_add_item'] or 0),
-        }
-
-        if month != 1:
-            # 1月以外の場合、前月のデータも追加
-            month_data.update({
-                'total_income_last_month': (last_month_data['total_income'] or 0),
-                'total_rent_last_month': (last_month_data['total_rent'] or 0),
-                'total_water_supply_last_month': (last_month_data['total_water_supply'] or 0),
-                'total_gas_last_month': (last_month_data['total_gas'] or 0),
-                'total_electricity_last_month': (last_month_data['total_electricity'] or 0),
-                'total_food_expenses_last_month': (last_month_data['total_food_expenses'] or 0),
-                'total_communication_expenses_last_month': (last_month_data['total_communication_expenses'] or 0),
-                'total_transportation_expenses_last_month': (last_month_data['total_transportation_expenses'] or 0),
-                'total_insurance_fee_last_month': (last_month_data['total_insurance_fee'] or 0),
-                'total_daily_necessities_last_month': (last_month_data['total_daily_necessities'] or 0),
-                'total_medical_bills_last_month': (last_month_data['total_medical_bills'] or 0),
-                'total_entertainment_expenses_last_month': (last_month_data['total_entertainment_expenses'] or 0),
-                'total_saving_last_month': (last_month_data['total_saving'] or 0),
-                'total_add_item_last_month': (last_month_data['total_add_item'] or 0),
+        # データを整形してコンテキストに追加
+        comparison_data = []
+        for category in categories:
+            current_amount = next((item['total_amount'] for item in current_month_totals if item['category__category_name'] == category.category_name), 0)
+            last_amount = next((item['total_amount'] for item in last_month_totals if item['category__category_name'] == category.category_name), 0)
+            comparison_data.append({
+                'category': category.category_name,
+                'current_amount': current_amount,
+                'last_amount': last_amount,
+                'percentage_change': last_amount - current_amount
             })
 
-        return month_data
+        context['year'] = year
+        context['month'] = month
+        context['comparison_data'] = comparison_data
+
+        return context
     
