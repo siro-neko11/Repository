@@ -1,22 +1,132 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h2>Edit Transaction</h2>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save Changes</button>
-  </form>
+<style>
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .container {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 50px;
+    padding: 20px;
+  }
+
+  h2 {
+    margin-top: 20px;
+  }
+
+  p {
+    text-align: center;
+  }
+
+  form {
+    margin-top: 20px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    margin-right: 10px; /* 修正点: マージンの指定が不足していたため追加 */
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+
+  .errorlist.nonfield {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+
+  .errorlist.nonfield li {
+    color: red;
+  }
+
+  form label {
+    display: inline-block;
+    width: 150px;
+    text-align: left; /* 修正点: text-alignの指定が誤っていたため修正 */
+    margin-right: 10px;
+  }
+
+  form select,
+  form input[type="text"],
+  form input[type="number"],
+  form textarea {
+    width: 50%;
+    padding: 10px;
+    margin: 8px 0;
+    box-sizing: border-box;
+  }
+
+  form select#id_event_date_year,
+  form select#id_event_date_month,
+  form select#id_event_date_day {
+    width: auto;
+  }
+
+  form label[for="id_memo"] {
+    vertical-align: top;
+  }
+
+  .d-flex.justify-content-start {
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
+  .form-group label {
+    float: left;
+    width: 150px;
+  }
+
+  .form-group .form-control {
+    float: left;
+    width: calc(100% - 150px);
+  }
+
+  .error-message {
+    color: red;
+    text-align: center;
+  }
+
+  .button-group {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  form input[type="date"] {
+    width: 50px;
+    box-sizing: border-box;
+  }
+</style>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h2 class="text-center mb-4">データ編集</h2>
+      <hr>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">変更</button>
+        <a href="{% url 'household_budget:balance' %}" class="btn btn-secondary">戻る</a>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
-
-
-{% comment %} {% extends 'base.html' %}
-
-{% block content %}
-  <h2>Edit Transaction</h2>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save Changes</button>
-  </form>
-{% endblock %} {% endcomment %}

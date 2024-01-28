@@ -88,7 +88,7 @@
           <td>{{ transaction.amount }}</td>
           <td>{{ transaction.memo }}</td>
           <td>
-           <a href="{% url 'household_budget:edit_transaction' transaction.pk %}" class="btn btn-secondary">編集</a>
+           <a href="{% url 'household_budget:edit_transaction' transaction.pk %}" class="btn btn-primary", style="center">編集</a>
           </td>
           <td>
            <a href="{% url 'household_budget:delete_transaction' transaction.pk %}" class="btn btn-danger">削除</a>
