@@ -173,11 +173,13 @@ class BalanceDeleteView(View):
         return HttpResponseRedirect(reverse('household_budget:balance'))
     
 
-#収支画面(ログインが必要)
-class TransactionView(View):
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
+class TransactionView(TemplateView):
     template_name = 'balance.html'
 
-    def get(self, request, *args, **kwargs):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
         # 今月の最初の日と最後の日を取得
         today = timezone.now()
         first_day_of_month = today.replace(day=1)
@@ -206,13 +208,11 @@ class TransactionView(View):
                 'transaction_count': category['transaction_count']
             }
 
-        context = {
-            'category_totals': category_totals_dict,
-            'monthly_transactions': monthly_transactions,
-        }
+        context['category_totals'] = category_totals_dict
+        context['monthly_transactions'] = monthly_transactions
 
-        return render(request, self.template_name, context)
-        
+        return context        
+    
 
 # 貯金画面(ログインが必要)
 @method_decorator(login_required, name='dispatch')
