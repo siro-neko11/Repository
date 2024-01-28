@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect, get_object_or_404
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from household_budget.models import Transaction, Budget, Goal_Saving, Vendor, Category
 from django.contrib.auth.decorators import login_required
 from .forms import TransactionForm, SavingForm, BudgetForm, VendorForm
@@ -12,10 +12,11 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponseNotFound
 from django.contrib import messages
 from django.views.generic import TemplateView, DeleteView, DetailView, UpdateView
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import TruncMonth, Coalesce
 from django.utils import timezone
 from django.urls import reverse_lazy
 from django.core.exceptions import PermissionDenied
+from collections import defaultdict
 
 
 
@@ -173,40 +174,44 @@ class BalanceDeleteView(View):
     
 
 #収支画面(ログインが必要)
-class TransactionView(TemplateView):
+class TransactionView(View):
     template_name = 'balance.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get(self, request, *args, **kwargs):
+        # 今月の最初の日と最後の日を取得
+        today = timezone.now()
+        first_day_of_month = today.replace(day=1)
+        last_day_of_month = today.replace(day=1, month=today.month+1) - timezone.timedelta(days=1)
 
-        # 今月のデータだけを取得
-        current_month = timezone.now().replace(day=1)  # 現在の月の1日を取得
-
-        transactions = Transaction.objects.filter(
-            user=self.request.user,
-            event_date__year=current_month.year,
-            event_date__month=current_month.month
+        # カテゴリーごとに今月のデータを集計
+        category_totals = Transaction.objects.filter(
+            event_date__range=[first_day_of_month, last_day_of_month]
+        ).values('category__category_name').annotate(
+            total_amount=Sum('amount'),
+            transaction_count=Count('id')
         )
 
-        # categoryごとに集計
-        monthly_summary = transactions.values('category__category_name').annotate(total_amount=Sum('amount'))
-        
-        # カテゴリーIDでソート
-        sorted_monthly_summary = sorted(
-            monthly_summary,
-            key=lambda x: x['category__category_name']
+        # 今月のデータを全て取得
+        monthly_transactions = Transaction.objects.filter(
+            event_date__range=[first_day_of_month, last_day_of_month]
         )
-        
-        context['sorted_monthly_summary'] = sorted_monthly_summary
 
-        # 日付、name1、name2も表示する
-        detailed_transactions = transactions.values(
-            'event_date', 'name_1', 'name_2', 'category__category_name', 'amount',
-            'payment_type__payment_type', 'vendor_name__vendor_name', 'memo')
+        # データが無い場合は0を表示させる
+        category_totals_dict = {category_name: {'total_amount': 0, 'transaction_count': 0} for category_name in Category.objects.values_list('category_name', flat=True)}
 
-        context['detailed_transactions'] = detailed_transactions
+        for category in category_totals:
+            category_name = category['category__category_name']
+            category_totals_dict[category_name] = {
+                'total_amount': category['total_amount'],
+                'transaction_count': category['transaction_count']
+            }
 
-        return context
+        context = {
+            'category_totals': category_totals_dict,
+            'monthly_transactions': monthly_transactions,
+        }
+
+        return render(request, self.template_name, context)
         
 
 # 貯金画面(ログインが必要)

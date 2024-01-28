@@ -2,72 +2,95 @@
 {% block content %}
 
 <style>
+  .container {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+  }
+
+  h2 {
+    margin-bottom: 20px;
+  }
+
   h3 {
-    margin-top: 50px;
+    margin-top: 30px;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+  }
+
+  table, th, td {
+    border: 1px solid #dee2e6;
+  }
+
+  th, td {
+    padding: 10px;
+    text-align: center;
+  }
+
+  .btn-secondary {
+    margin-top: 20px;
   }
 </style>
-<div class="container mt-5">
-    <h2 class="mb-4">今月のデータ</h2>
 
-    <h3>集計</h3>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>項目</th>
-                <th>合計金額</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in sorted_monthly_summary %}
-                <tr>
-                    <td>{{ entry.category__category_name }}</td>
-                    <td>{{ entry.total_amount }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<body>
 
-    <h3>詳細取引データ</h3>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>日付</th>
-                <th>本人名</th>
-                <th>パートナー名</th>
-                <th>項目</th>
-                <th>支払先</th>
-                <th>種別</th>
-                <th>金額</th>
-                <th>メモ</th>
-                <th>編集</th>
-                <th>削除</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in detailed_transactions %}
-                <tr>
-                    <td>{{ entry.event_date|date:"n月 j日" }}</td>
-                    <td>{{ entry.name_1 }}</td>
-                    <td>{{ entry.name_2 }}</td>
-                    <td>{{ entry.category__category_name }}</td>
-                    <td>{{ entry.vendor_name__vendor_name }}</td>
-                    <td>{{ entry.payment_type__payment_type }}</td>
-                    <td>{{ entry.amount }}</td>
-                    <td>{{ entry.memo }}</td>
-                    {% comment %} <td>
-                    <!-- 編集ボタンを追加 -->
-                    <a href="{% url 'household_budget:edit_transaction' entry.id %}" class="btn btn-primary">編集</a>
-                    </td> {% endcomment %}
-                    <td>
-                        <!-- 削除ボタンを追加 -->
-                        {% comment %} <a href="{% url 'household_budget:delete' entry.id %}" class="btn btn-danger">削除</a> {% endcomment %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <div class="d-flex justify-content-start mt-3">
-        <a href="{% url 'accounts:user' %}" class="btn btn-secondary ml-2">戻る</a>
-    </div>
+<div class="container"> <!-- .container を追加 -->
+  <h1>今月のデータ</h1>
+
+  <h2>集計</h2>
+  <table>
+    <thead>
+      <tr>
+        {% for category_name, data in category_totals.items %}
+          <th>{{ category_name }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        {% for category_name, data in category_totals.items %}
+          <td>{{ data.total_amount }}</td>
+        {% endfor %}
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>詳細</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>日付</th>
+        <th>本人名</th>
+        <th>パートナー名</th>
+        <th>項目</th>
+        <th>種別</th>
+        <th>支払先</th>
+        <th>金額</th>
+        <th>メモ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for transaction in monthly_transactions %}
+        <tr>
+          <td>{{ transaction.event_date }}</td>
+          <td>{{ transaction.name_1 }}</td>
+          <td>{{ transaction.name_2 }}</td>
+          <td>{{ transaction.category.category_name }}</td>
+          <td>{{ transaction.payment_type.payment_type }}</td>
+          <td>{{ transaction.vendor_name.vendor_name }}</td>
+          <td>{{ transaction.amount }}</td>
+          <td>{{ transaction.memo }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a href="{% url 'household_budget:b_regist' %}" class="btn btn-secondary">戻る</a>
+
 </div>
+</body>
 {% endblock %}
