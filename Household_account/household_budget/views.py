@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect, get_object_or_404
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Value
 from household_budget.models import Transaction, Budget, Goal_Saving, Vendor, Category
 from django.contrib.auth.decorators import login_required
 from .forms import TransactionForm, SavingForm, BudgetForm, VendorForm
@@ -276,26 +276,37 @@ def reset_goal(request):
         return redirect('household_budget:savings')
 
     
-#収支データ
+#各月の収支データ
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
 class M_DataView(TemplateView):
-    template_name = 'm_data.html'  # 作成するHTMLテンプレートの名前に変更してください
+    template_name = 'm_data.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # URLから年と月を取得
         year = self.kwargs.get('year')
         month = self.kwargs.get('month')
-
-        # 月ごとの集計データを取得
+        
+         # 月ごとの集計データを取得
         monthly_summary = Transaction.objects.filter(event_date__year=year, event_date__month=month)\
             .values('category__category_name')\
+            .annotate(total_amount=Coalesce(Sum('amount'), Value(0)))
+
+        # カテゴリ一覧の取得
+        categories = ['家賃', '水道代', 'ガス代', '電気代', '食費', '通信費', '交通費', '保険代', '日用品', '医療費', '交際費', '貯金', 'その他']
+
+        # カテゴリごとの合計を取得
+        monthly_summary = Transaction.objects.filter(event_date__year=year, event_date__month=month) \
+            .values('category__category_name') \
             .annotate(total_amount=Sum('amount'))
-        
-        #データが無い場合の処理
-        if not monthly_summary:
-            context['no_data_message'] = 'データが未入力です'
-            return context
+
+        # データが無い場合は0を表示させる
+        category_totals_dict = {category_name: {'total_amount': 0} for category_name in categories}
+
+        for category in monthly_summary:
+            category_name = category['category__category_name']
+            category_totals_dict[category_name] = {
+                'total_amount': category['total_amount'] if category['total_amount'] is not None else 0
+            }
 
         # 月ごとの詳細データを取得
         monthly_details = Transaction.objects.filter(event_date__year=year, event_date__month=month)
@@ -303,12 +314,12 @@ class M_DataView(TemplateView):
         # 最新の予算データを取得
         latest_budget = Budget.objects.filter(event_date__year=year, event_date__month=month).order_by('-event_date').first()
 
-
         context['year'] = year
         context['month'] = month
-        context['monthly_summary'] = monthly_summary
+        context['category_totals'] = category_totals_dict
         context['monthly_details'] = monthly_details
         context['latest_budget'] = latest_budget
+
 
         return context
     
