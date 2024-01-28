@@ -9,7 +9,7 @@ from django.views.generic.base import  View
 from django.http.response import HttpResponse as HttpResponse
 from datetime import datetime, timedelta
 from django.urls import reverse
-from django.http import HttpResponseRedirect, Http404, HttpResponseNotFound
+from django.http import HttpResponseRedirect, Http404, HttpResponseNotFound, HttpResponseServerError
 from django.contrib import messages
 from django.views.generic import TemplateView, DeleteView, DetailView, UpdateView
 from django.db.models.functions import TruncMonth, Coalesce
@@ -267,12 +267,12 @@ def set_goal(request):
 #目標リセット
 def reset_goal(request):
     try:
-        latest_goal_saving = Goal_Saving.objects.latest('timestamp')
-        latest_goal_saving.savings_goal = None
-        latest_goal_saving.save()
+        # ユーザーごとに最新の目標を取得する
+        latest_goal_saving = Goal_Saving.objects.filter(user=request.user).latest('timestamp')
+        latest_goal_saving.delete()
         return redirect('household_budget:savings')
     except Goal_Saving.DoesNotExist:
-        # Goal_Saving レコードが存在しない場合の処理
+        # 目標が存在しない場合のエラーハンドリング
         return redirect('household_budget:savings')
 
     
