@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (SavingListView, TransactionView, TransactionRegistView,
-                    M_DataView, BalanceDeleteView, edit_transaction,
+                    M_DataView, DeleteTransactionView, UpdateTransactionView,
                     set_budget, set_goal, reset_goal, MonthlyComparisonView,
                     AddPaymentDestinationView, UpdatePaymentDestinationView, DeletePaymentDestinationView,
                     PaymentDestinationListView)
@@ -17,8 +17,8 @@ urlpatterns = [
     path('monthly_data/<int:year>-<int:month>/', M_DataView.as_view(), name='monthly_data'),
     # path('edit_transaction/<int:transaction_id>/', edit_transaction, name='edit_transaction'),
     # path('edit_transaction/<int:pk>/', BalanceEditView.as_view(), name='edit_transaction'),
-    path('balance/edit/<int:transaction_id>/', edit_transaction, name='edit_transaction'),
-    path('delete/<int:pk>/', BalanceDeleteView.as_view(), name='delete'),
+    path('edit_transaction/<int:pk>/', UpdateTransactionView.as_view(), name='edit_transaction'),
+    path('delete_transaction/<int:pk>/', DeleteTransactionView.as_view(), name='delete_transaction'),
     path('set_budget/', set_budget, name='set_budget'),
     path('monthly-comparison/<int:year>/<int:month>/', MonthlyComparisonView.as_view(), name='monthly_comparison'),
     path('paymentdestination/', AddPaymentDestinationView.as_view(), name='paymentdestination'),

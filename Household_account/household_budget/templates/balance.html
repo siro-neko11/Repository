@@ -72,6 +72,8 @@
         <th>支払先</th>
         <th>金額</th>
         <th>メモ</th>
+        <th>修正</th>
+        <th>削除</th>
       </tr>
     </thead>
     <tbody>
@@ -85,6 +87,12 @@
           <td>{{ transaction.vendor_name.vendor_name }}</td>
           <td>{{ transaction.amount }}</td>
           <td>{{ transaction.memo }}</td>
+          <td>
+           <a href="{% url 'household_budget:edit_transaction' transaction.pk %}" class="btn btn-secondary">編集</a>
+          </td>
+          <td>
+           <a href="{% url 'household_budget:delete_transaction' transaction.pk %}" class="btn btn-danger">削除</a>
+          </td>
         </tr>
       {% endfor %}
     </tbody>

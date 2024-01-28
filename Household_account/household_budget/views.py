@@ -141,38 +141,41 @@ def set_budget(request):
     return render(request, 'household_budget/set_budget.html', {'form': form, 'current_budget': budget})
 
 
-# 今月のデータ編集
-def edit_transaction(request, transaction_id):
-    transaction = get_object_or_404(Transaction, pk=transaction_id)
-
-    if request.method == 'POST':
-        form = TransactionForm(request.user, request.POST, instance=transaction)
+#今月のデータ変更
+class UpdateTransactionView(View):
+    template_name = 'edit_transaction.html'
+    form_class = TransactionForm
+    
+    def get(self, request, pk, *args, **kwargs):
+        transaction_data = Transaction.objects.get(pk=pk)
+        form = self.form_class(user=request.user, instance=transaction_data)
+        return render(request, self.template_name, {'form': form, 'transaction_data': transaction_data})
+    
+    def post(self, request, pk, *args, **kwargs):
+        transaction_data = Transaction.objects.get(pk=pk)
+        form = self.form_class(request.user, request.POST, instance=transaction_data)
         if form.is_valid():
             form.save()
-            return redirect('transaction_list')  # 編集後にリダイレクトする先を指定
-    else:
-        form = TransactionForm(request.user, instance=transaction)
-
-    # テンプレートに渡すデータにURLを追加
-    edit_url = reverse('edit_transaction', args=[transaction.pk])
-    return render(request, 'edit_transaction.html', {'form': form, 'transaction': transaction, 'edit_url': edit_url})
-
-
-
-#今月の削除画面
-class BalanceDeleteView(View):
-    template_name = 'b_delete.html'
-
-    def get(self, request, pk, *args, **kwargs):
-        balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
-        return render(request, self.template_name, {'balance_entry': balance_entry})
-
-    def post(self, request, pk, *args, **kwargs):
-        balance_entry = get_object_or_404(Transaction, pk=pk, user=request.user)
-        balance_entry.delete()
-        return HttpResponseRedirect(reverse('household_budget:balance'))
+            return redirect('household_budget:balance')
+        return render(request, self.template_name, {'form': form, 'transaction_data': transaction_data})
     
 
+#今月のデータ削除
+class DeleteTransactionView(View):
+    template_name = 'delete_transaction.html'
+    form_class = TransactionForm
+    
+    def get(self, request, pk, *args, **kwargs):
+        transaction_data = Transaction.objects.get(pk=pk)
+        return render(request, self.template_name, {'transaction_data': transaction_data})
+    
+    def post(self, request, pk, *args, **kwargs):
+        transaction_data = Transaction.objects.get(pk=pk)
+        transaction_data.delete()
+        return redirect('household_budget:balance')
+
+
+#今月のデータ
 @method_decorator(login_required(login_url='/login/'), name='dispatch')
 class TransactionView(TemplateView):
     template_name = 'balance.html'

@@ -1,4 +1,18 @@
+<!-- delete_transaction.html -->
 {% extends 'base.html' %}
+
+{% block content %}
+  <h2>Delete Transaction</h2>
+  <p>Are you sure you want to delete this transaction?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Delete</button>
+  </form>
+{% endblock %}
+
+
+
+{% comment %} {% extends 'base.html' %}
 {% block content %}
 
 <div class="container mt-5">
@@ -16,4 +30,4 @@
     </form>
 </div>
 
-{% endblock %}
+{% endblock %} {% endcomment %}
