@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
 <title>今月のデータ</title>
-{{ name1_total_amount }}
-{{ name2_total_amount }}
 <style>
   .container {
     background-color: #fff;
@@ -40,6 +38,14 @@
 
 <div class="container">
   <h1>今月のデータ</h1>
+
+  <h3>それぞれの支出合計</h3>
+  <p>小数点以下は切上げで計算されます。</p>
+  <div style="display: flex; gap: 20px;">
+  <h4>{{ monthly_transactions.0.name_1 }} : {{ name1_total_amount }}円</h2>
+  <h4>{{ monthly_transactions.1.name_2 }} : {{ name2_total_amount }}円</h2>
+  </div>
+
 
   <h3>集計</h3>
   <table class="table table-striped table-bordered mt-4">

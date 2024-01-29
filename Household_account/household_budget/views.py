@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.urls import reverse_lazy
 from django.core.exceptions import PermissionDenied
 from collections import defaultdict
+import math
 
 
 
@@ -228,7 +229,7 @@ class TransactionView(TemplateView):
 
         
         #両方に値が入っていた場合の合計を半分にする
-        name_both_half_monthly_amount = name_monthly_amount / 2
+        name_both_half_monthly_amount = math.ceil(name_monthly_amount / 2)
         
         
         # データが無い場合は0を表示させる
@@ -241,7 +242,7 @@ class TransactionView(TemplateView):
                 'transaction_count': category['transaction_count']
             }
             
-    #mame_1の合計
+        #mame_1の合計
         name1_total_amount =name1_only_monthly_amount - name_monthly_amount + name_both_half_monthly_amount
         
         #name_2の合計
