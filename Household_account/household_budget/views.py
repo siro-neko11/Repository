@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect, get_object_or_404
-from django.db.models import Sum, Count, Value
+from django.db.models import Sum, F, ExpressionWrapper, FloatField, Q, Count, Value, Case, When, IntegerField
 from household_budget.models import Transaction, Budget, Goal_Saving, Vendor, Category
 from django.contrib.auth.decorators import login_required
 from .forms import TransactionForm, SavingForm, BudgetForm, VendorForm
@@ -175,6 +175,7 @@ class DeleteTransactionView(View):
         return redirect('household_budget:balance')
 
 
+
 #今月のデータ
 @method_decorator(login_required(login_url='/login/'), name='dispatch')
 class TransactionView(TemplateView):
@@ -200,7 +201,33 @@ class TransactionView(TemplateView):
         monthly_transactions = Transaction.objects.filter(
             event_date__range=[first_day_of_month, last_day_of_month]
         )
+        
+        # name_1だけに値が入っていた場合の今月の合計
+        name1_only_monthly_amount = Transaction.objects.filter(
+            Q(name_1__isnull=False) & ~Q(name_1=''),
+            event_date__range=[first_day_of_month, last_day_of_month]
+        ).aggregate(name1_has_data_total_amount=Sum('amount'))['name1_has_data_total_amount'] or 0
 
+
+        # name_2だけに値が入っていた場合の今月の合計
+        name2_only_monthly_amount = Transaction.objects.filter(
+            Q(name_2__isnull=False) & ~Q(name_2=''),
+            event_date__range=[first_day_of_month, last_day_of_month]
+        ).aggregate(name1_has_data_total_amount=Sum('amount'))['name1_has_data_total_amount'] or 0
+        
+        
+        
+        # 両方に値が入っていた場合の今月の合計
+        name_monthly_amount = Transaction.objects.filter(
+            Q(name_1__isnull=False) & Q(name_2__isnull=False) & ~Q(name_1='') & ~Q(name_2=''),
+            event_date__range=[first_day_of_month, last_day_of_month]
+        ).aggregate(name_both_total_amount=Sum('amount'))['name_both_total_amount'] or 0
+
+        
+        #両方に値が入っていた場合の合計を半分にする
+        name_both_half_monthly_amount = name_monthly_amount / 2
+        
+        
         # データが無い場合は0を表示させる
         category_totals_dict = {category_name: {'total_amount': 0, 'transaction_count': 0} for category_name in Category.objects.values_list('category_name', flat=True)}
 
@@ -210,11 +237,19 @@ class TransactionView(TemplateView):
                 'total_amount': category['total_amount'],
                 'transaction_count': category['transaction_count']
             }
-
+            
+    #mame_1の合計
+        name1_total_amount =name1_only_monthly_amount - name_monthly_amount + name_both_half_monthly_amount
+        
+        #name_2の合計
+        name2_total_amount =name2_only_monthly_amount - name_monthly_amount + name_both_half_monthly_amount
+        
         context['category_totals'] = category_totals_dict
         context['monthly_transactions'] = monthly_transactions
+        context['name1_total_amount'] = name1_total_amount
+        context['name2_total_amount'] = name2_total_amount
 
-        return context        
+        return context
     
 
 # 貯金画面(ログインが必要)
