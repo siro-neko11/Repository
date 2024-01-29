@@ -205,6 +205,7 @@ class TransactionView(TemplateView):
         # name_1だけに値が入っていた場合の今月の合計
         name1_only_monthly_amount = Transaction.objects.filter(
             Q(name_1__isnull=False) & ~Q(name_1=''),
+            ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
         ).aggregate(name1_has_data_total_amount=Sum('amount'))['name1_has_data_total_amount'] or 0
 
@@ -212,6 +213,7 @@ class TransactionView(TemplateView):
         # name_2だけに値が入っていた場合の今月の合計
         name2_only_monthly_amount = Transaction.objects.filter(
             Q(name_2__isnull=False) & ~Q(name_2=''),
+            ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
         ).aggregate(name1_has_data_total_amount=Sum('amount'))['name1_has_data_total_amount'] or 0
         
@@ -220,6 +222,7 @@ class TransactionView(TemplateView):
         # 両方に値が入っていた場合の今月の合計
         name_monthly_amount = Transaction.objects.filter(
             Q(name_1__isnull=False) & Q(name_2__isnull=False) & ~Q(name_1='') & ~Q(name_2=''),
+            ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
         ).aggregate(name_both_total_amount=Sum('amount'))['name_both_total_amount'] or 0
 

@@ -23,7 +23,7 @@ class TransactionForm(forms.ModelForm):
     name_1 = forms.CharField(label='本人名', required=False)
     name_2 = forms.CharField(label='パートナー名', required=False)
     category = forms.ModelChoiceField(label='項目', queryset=Category.objects.all())
-    payment_type = forms.ModelChoiceField(label='支払い種別', queryset=PaymentType.objects.all())
+    payment_type = forms.ModelChoiceField(label='収支種別', queryset=PaymentType.objects.all())
     amount = forms.IntegerField(label='金額')
     memo = forms.CharField(label='メモ', widget=forms.Textarea, required=False)
     vendor_name = forms.ModelChoiceField(label='支払先', queryset=Vendor.objects.all())
