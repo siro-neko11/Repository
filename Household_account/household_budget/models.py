@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.conf import settings
 import datetime
 from django import forms
-from django.contrib.auth.models import User
 
 
 #項目
@@ -51,9 +50,6 @@ class Transaction(models.Model):
     vendor_name = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name='vendor_transactions')
     amount = models.IntegerField(default=0)
     memo = models.TextField(null=True)
-
-    # def __str__(self):
-    #     return f"{self.event_date} - {self.category} - {self.vendor_name} - {self.amount}"
     
     class Meta:
         db_table = 'transaction'
