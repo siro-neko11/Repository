@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
 {% block content %}
+
+<title>貯金ページ</title>
+<style>
+   .congrats-text{
+       font-weight: bold;
+       color:blue;
+   }
+</style>
+
     <div class="container mt-5">
         <h2 class="mb-4">貯金ページ</h2>
         <p>年間目標を決めて達成しよう！</p>
@@ -8,6 +17,10 @@
             <div class="alert alert-success">
                 <p class="mb-1">目標: ¥{{ latest_savings_goal.savings_goal|floatformat:"0" }}</p>
                 <p class="mb-1">目標まで: ¥{{ latest_savings_goal.savings_goal|floatformat:"0" | calculate_difference:total_amount|floatformat:"0" }}</p>
+
+                {% if goal_achieved %}
+                   <p class="congrats-text">達成おめでとう！</p>
+                {% endif %}
             </div>
         {% else %}
             <div class="alert alert-warning">

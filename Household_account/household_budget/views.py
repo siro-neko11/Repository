@@ -279,10 +279,21 @@ class SavingListView(TemplateView):
 
         # 最新の貯金目標を取得
         latest_savings_goal = Goal_Saving.objects.filter(user_id=user_id, savings_goal__isnull=False).order_by('-timestamp').first()
+        
+        #目標達成したかどうかを判定
+        goal_achieved = (
+            latest_savings_goal is not None
+            and latest_savings_goal.savings_goal is not None
+            and total_amount is not None
+            and latest_savings_goal.savings_goal <= total_amount
+        )
+
+        
 
         context['monthly_summary'] = monthly_summary
         context['total_amount'] = total_amount
         context['latest_savings_goal'] = latest_savings_goal
+        context['goal_achieved'] = goal_achieved
 
         return context
 
