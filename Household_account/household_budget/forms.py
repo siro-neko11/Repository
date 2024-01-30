@@ -38,13 +38,9 @@ class TransactionForm(forms.ModelForm):
     memo = forms.CharField(label='メモ', widget=forms.Textarea, required=False)
     vendor_name = forms.ModelChoiceField(label='支払先', queryset=Vendor.objects.all())
     
-    def clean_event_data(self):
-        event_date = self.cleaned_data.get('event_data')
-        today = timezone.now().date()
+    def clean_event_date(self):
+        return self.cleaned_data.get('event_date')
         
-        if event_date and event_date > today:
-            raise forms.ValidationError('未来の日付は選択できません。')
-
     def clean_vendor_name(self):
         vendor = self.cleaned_data.get('vendor_name')
         if vendor:
