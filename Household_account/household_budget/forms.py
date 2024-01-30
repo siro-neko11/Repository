@@ -6,7 +6,17 @@ from django.contrib.auth import get_user_model
 
 #支払先登録
 class VendorForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=get_user_model().objects.all(), widget=forms.HiddenInput(), required=False)
     vendor_name = forms.CharField(label='支払先')
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(VendorForm, self).__init__(*args, **kwargs)
+        
+        if user and user.is_authenticated:
+            self.fields['user'].initial = user
+            self.fields['user'].queryset = get_user_model().objects.filter(pk=user.pk)
+            
     
     class Meta:
         model = Vendor

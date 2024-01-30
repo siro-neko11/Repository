@@ -1,3 +1,5 @@
+from typing import Any
+from django.http import HttpRequest
 from django.shortcuts import render,redirect
 from django.db.models import Sum, Q, Count, Value
 from household_budget.models import Transaction, Budget, Goal_Saving, Vendor, Category
@@ -22,7 +24,9 @@ class TransactionRegistView(View):
 
     def get(self, request, *args, **kwargs):
         transactions = Transaction.objects.all()
-        form = self.form_class(user=request.user)  # userを渡す
+        form = self.form_class(user=request.user) 
+        vendors = Vendor.objects.filter(user=request.user)
+        form.fields['vendor_name'].queryset = vendors
         return render(request, self.template_name, {'transactions': transactions, 'form': form})
 
     def post(self, request, *args, **kwargs):
@@ -105,7 +109,8 @@ class PaymentDestinationListView(View):
             return render(request, self.template_name, {'payment_destinations': payment_destinations})
         else:
             # ユーザーが認証されていない場合は、ログインページなどへリダイレクトするか、エラーを表示するなどの処理を行います
-            return render(request, 'error_page.html', {'error_message': 'ログインが必要です'})
+            return render(request, 'accounts:login.html')
+        
     
 
         
@@ -177,6 +182,9 @@ class TransactionView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        #ユーザーに関連するデータのみ取得する
+        user_transactions = Transaction.objects.filter(user=self.request.user)
 
         # 今月の最初の日と最後の日を取得
         today = timezone.now()
@@ -184,7 +192,7 @@ class TransactionView(TemplateView):
         last_day_of_month = today.replace(day=1, month=today.month+1) - timezone.timedelta(days=1)
 
         # カテゴリーごとに今月のデータを集計
-        category_totals = Transaction.objects.filter(
+        category_totals = user_transactions.filter(
             event_date__range=[first_day_of_month, last_day_of_month]
         ).values('category__category_name').annotate(
             total_amount=Sum('amount'),
@@ -192,12 +200,12 @@ class TransactionView(TemplateView):
         )
 
         # 今月のデータを全て取得
-        monthly_transactions = Transaction.objects.filter(
+        monthly_transactions = user_transactions.filter(
             event_date__range=[first_day_of_month, last_day_of_month]
         )
         
         # name_1だけに値が入っていた場合の今月の合計
-        name1_only_monthly_amount = Transaction.objects.filter(
+        name1_only_monthly_amount = user_transactions.filter(
             Q(name_1__isnull=False) & ~Q(name_1=''),
             ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
@@ -205,7 +213,7 @@ class TransactionView(TemplateView):
 
 
         # name_2だけに値が入っていた場合の今月の合計
-        name2_only_monthly_amount = Transaction.objects.filter(
+        name2_only_monthly_amount = user_transactions.filter(
             Q(name_2__isnull=False) & ~Q(name_2=''),
             ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
@@ -214,7 +222,7 @@ class TransactionView(TemplateView):
         
         
         # 両方に値が入っていた場合の今月の合計
-        name_monthly_amount = Transaction.objects.filter(
+        name_monthly_amount = user_transactions.filter(
             Q(name_1__isnull=False) & Q(name_2__isnull=False) & ~Q(name_1='') & ~Q(name_2=''),
             ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
@@ -323,23 +331,30 @@ class M_DataView(TemplateView):
         last_day_of_month = first_day_of_month.replace(day=1, month=first_day_of_month.month + 1) - timezone.timedelta(days=1)
 
         # 月ごとの集計データを取得
-        monthly_summary = Transaction.objects.filter(event_date__year=year, event_date__month=month) \
-            .values('category__category_name') \
+        monthly_summary = Transaction.objects.filter(
+            user=self.request.user,
+            event_date__year=year,
+            event_date__month=month
+        ).values('category__category_name') \
             .annotate(total_amount=Coalesce(Sum('amount'), Value(0)))
 
         # カテゴリ一覧の取得
         categories = ['家賃', '水道代', 'ガス代', '電気代', '食費', '通信費', '交通費', '保険代', '日用品', '医療費', '交際費', '貯金', 'その他']
 
         # カテゴリごとの合計を取得
-        monthly_summary = Transaction.objects.filter(event_date__year=year, event_date__month=month) \
-            .values('category__category_name') \
+        monthly_summary = Transaction.objects.filter(
+            user=self.request.user,
+            event_date__year=year,
+            event_date__month=month
+        ).values('category__category_name') \
             .annotate(total_amount=Sum('amount'))
         
         #Transactionからデータ取得
-        transaction_data = Transaction.objects.all()
+        transaction_data = Transaction.objects.filter(user=self.request.user)
 
         # name_1だけに値が入っていた場合の今月の合計
         name1_only_monthly_amount = Transaction.objects.filter(
+            Q(user=self.request.user) &
             Q(name_1__isnull=False) & ~Q(name_1=''),
             ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
@@ -347,6 +362,7 @@ class M_DataView(TemplateView):
 
         # name_2だけに値が入っていた場合の今月の合計
         name2_only_monthly_amount = Transaction.objects.filter(
+            Q(user=self.request.user) &
             Q(name_2__isnull=False) & ~Q(name_2=''),
             ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
@@ -354,6 +370,7 @@ class M_DataView(TemplateView):
 
         # 両方に値が入っていた場合の今月の合計
         name_monthly_amount = Transaction.objects.filter(
+            Q(user=self.request.user) &
             Q(name_1__isnull=False) & Q(name_2__isnull=False) & ~Q(name_1='') & ~Q(name_2=''),
             ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
@@ -372,10 +389,18 @@ class M_DataView(TemplateView):
             }
 
         # 月ごとの詳細データを取得
-        monthly_details = Transaction.objects.filter(event_date__year=year, event_date__month=month)
+        monthly_details = Transaction.objects.filter(
+            user=self.request.user,
+            event_date__year=year,
+            event_date__month=month
+            )
 
         # 最新の予算データを取得
-        latest_budget = Budget.objects.filter(event_date__year=year, event_date__month=month).order_by('-event_date').first()
+        latest_budget = Budget.objects.filter(
+            user=self.request.user,
+            event_date__year=year,
+            event_date__month=month
+            ).order_by('-event_date').first()
 
         # mame_1の合計
         name1_total_amount = name1_only_monthly_amount - name_monthly_amount + name_both_half_monthly_amount
@@ -398,6 +423,11 @@ class M_DataView(TemplateView):
 #前月比
 class MonthlyComparisonView(TemplateView):
     template_name = 'm_comparison.html'
+    
+    @method_decorator(login_required(login_url='/login/'))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -407,11 +437,11 @@ class MonthlyComparisonView(TemplateView):
         month = self.kwargs.get('month')
 
         # 対象月のデータを取得
-        current_month_data = Transaction.objects.filter(event_date__year=year, event_date__month=month)
+        current_month_data = Transaction.objects.filter(user=self.request.user, event_date__year=year, event_date__month=month)
 
         # 前月のデータを取得
-        last_month = datetime(year, month, 1) - timedelta(days=1)
-        last_month_data = Transaction.objects.filter(event_date__year=last_month.year, event_date__month=last_month.month)
+        last_month = datetime(int(year), int(month), 1) - timedelta(days=1)
+        last_month_data = Transaction.objects.filter(user=self.request.user, event_date__year=last_month.year, event_date__month=last_month.month)
 
         # カテゴリごとの合計を計算
         current_month_totals = current_month_data.values('category__category_name').annotate(total_amount=Sum('amount'))

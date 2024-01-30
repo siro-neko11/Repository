@@ -11,6 +11,7 @@
           <h2 class="card-title mb-4">支払先削除</h2>
           <hr>
           <p class="card-text">本当に削除しますか？</p>
+          <p class="card-text">削除する支払先が設定されている収支データも削除されます。</p>
           <form method="post" action="{% url 'household_budget:deletepaymentdestination' pk=payment_destination.pk %}">
             {% csrf_token %}
             <div class="d-flex justify-content-start mt-4">
