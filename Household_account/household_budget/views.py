@@ -1,5 +1,3 @@
-from typing import Any
-from django.http import HttpRequest
 from django.shortcuts import render,redirect
 from django.db.models import Sum, Q, Count, Value
 from household_budget.models import Transaction, Budget, Goal_Saving, Vendor, Category
