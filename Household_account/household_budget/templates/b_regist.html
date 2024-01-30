@@ -147,6 +147,9 @@
             {% if form.errors.name_2 %}
               <p>{{ form.errors.name_2 }}</p>
             {% endif %}
+            {% if form.errors.event_date %}
+              <p>未来の日付は入力できません。</p>
+            {% endif %}
           </div>
         {% endif %}
         <div class="d-flex justify-content-start mt-3">

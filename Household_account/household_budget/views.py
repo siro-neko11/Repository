@@ -316,7 +316,111 @@ def reset_goal(request):
         return redirect('household_budget:savings')
 
 
-# 各月の収支データ
+# 各月の収支データ(2023)
+@method_decorator(login_required(login_url='/login/'), name='dispatch')
+class M_2023DataView(TemplateView):
+    template_name = 'm_data.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        year = self.kwargs.get('year')
+        month = self.kwargs.get('month')
+
+        # 月初と月末の日付を取得
+        first_day_of_month = timezone.datetime(int(year), int(month), 1)
+        last_day_of_month = first_day_of_month.replace(day=1, month=first_day_of_month.month + 1) - timezone.timedelta(days=1)
+
+        # 月ごとの集計データを取得
+        monthly_summary = Transaction.objects.filter(
+            user=self.request.user,
+            event_date__year=year,
+            event_date__month=month
+        ).values('category__category_name') \
+            .annotate(total_amount=Coalesce(Sum('amount'), Value(0)))
+
+        # カテゴリ一覧の取得
+        categories = ['家賃', '水道代', 'ガス代', '電気代', '食費', '通信費', '交通費', '保険代', '日用品', '医療費', '交際費', '貯金', 'その他']
+
+        # カテゴリごとの合計を取得
+        monthly_summary = Transaction.objects.filter(
+            user=self.request.user,
+            event_date__year=year,
+            event_date__month=month
+        ).values('category__category_name') \
+            .annotate(total_amount=Sum('amount'))
+        
+        #Transactionからデータ取得
+        transaction_data = Transaction.objects.filter(user=self.request.user)
+
+        # name_1だけに値が入っていた場合の今月の合計
+        name1_only_monthly_amount = Transaction.objects.filter(
+            Q(user=self.request.user) &
+            Q(name_1__isnull=False) & ~Q(name_1=''),
+            ~Q(category_id=1) & ~Q(category_id=13),
+            event_date__range=[first_day_of_month, last_day_of_month]
+        ).aggregate(name1_has_data_total_amount=Sum('amount'))['name1_has_data_total_amount'] or 0
+
+        # name_2だけに値が入っていた場合の今月の合計
+        name2_only_monthly_amount = Transaction.objects.filter(
+            Q(user=self.request.user) &
+            Q(name_2__isnull=False) & ~Q(name_2=''),
+            ~Q(category_id=1) & ~Q(category_id=13),
+            event_date__range=[first_day_of_month, last_day_of_month]
+        ).aggregate(name1_has_data_total_amount=Sum('amount'))['name1_has_data_total_amount'] or 0
+
+        # 両方に値が入っていた場合の今月の合計
+        name_monthly_amount = Transaction.objects.filter(
+            Q(user=self.request.user) &
+            Q(name_1__isnull=False) & Q(name_2__isnull=False) & ~Q(name_1='') & ~Q(name_2=''),
+            ~Q(category_id=1) & ~Q(category_id=13),
+            event_date__range=[first_day_of_month, last_day_of_month]
+        ).aggregate(name_both_total_amount=Sum('amount'))['name_both_total_amount'] or 0
+
+        # 両方に値が入っていた場合の合計を半分にする
+        name_both_half_monthly_amount = math.ceil(name_monthly_amount / 2)
+
+        # データが無い場合は0を表示させる
+        category_totals_dict = {category_name: {'total_amount': 0} for category_name in categories}
+
+        for category in monthly_summary:
+            category_name = category['category__category_name']
+            category_totals_dict[category_name] = {
+                'total_amount': category['total_amount'] if category['total_amount'] is not None else 0
+            }
+
+        # 月ごとの詳細データを取得
+        monthly_details = Transaction.objects.filter(
+            user=self.request.user,
+            event_date__year=year,
+            event_date__month=month
+            )
+
+        # 最新の予算データを取得
+        latest_budget = Budget.objects.filter(
+            user=self.request.user,
+            event_date__year=year,
+            event_date__month=month
+            ).order_by('-event_date').first()
+
+        # mame_1の合計
+        name1_total_amount = name1_only_monthly_amount - name_monthly_amount + name_both_half_monthly_amount
+
+        # name_2の合計
+        name2_total_amount = name2_only_monthly_amount - name_monthly_amount + name_both_half_monthly_amount
+
+        context['year'] = year
+        context['month'] = month
+        context['category_totals'] = category_totals_dict
+        context['monthly_details'] = monthly_details
+        context['latest_budget'] = latest_budget
+        context['name1_total_amount'] = name1_total_amount
+        context['name2_total_amount'] = name2_total_amount
+        context['name'] = transaction_data
+
+        return context
+
+
+# 各月の収支データ(2024)
 @method_decorator(login_required(login_url='/login/'), name='dispatch')
 class M_DataView(TemplateView):
     template_name = 'm_data.html'
@@ -420,7 +524,7 @@ class M_DataView(TemplateView):
         return context
     
 
-#前月比
+#前月比(2024)
 class MonthlyComparisonView(TemplateView):
     template_name = 'm_comparison.html'
     

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block content %}
+    <title>家計簿</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        h4 {
+            margin-top: 50px;
+            transform: translateX(-25%)
+        }
+
+        ul.monthly-list,
+        ul.lastmonth-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .monthly-list li,
+        .lastmonth-list li {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .monthly-list a,
+        .lastmonth-list a {
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: background-color 0.3s ease;
+        }
+
+        .monthly-list a {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        .lastmonth-list a {
+            background-color: #BA6329;
+            color: #fff;
+        }
+
+        .monthly-list a:hover,
+        .lastmonth-list a:hover {
+            background-color: #2980b9;
+        }
+
+        .monthly-container,
+        .lastmonth-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .column {
+            margin: 0 20px;
+        }
+
+        h2 {
+            margin-top: 50px;
+        }
+
+        .lastmonth-list a:hover {
+            background-color: #8E4A1C;
+        }
+
+        .d-flex.justify-content-start.mt-3 a {
+            margin-top: 50px !important;
+        }
+
+        {% if not user.is_authenticated %}
+            #main-content {
+                display: none;
+            }
+
+            #login-message {
+                margin-top: 50px;
+                font-size: 18px;
+                color: #FF0000;
+            }
+        {% endif %}
+    </style>
+    <h2>2023年のデータ</h2>
+
+    <h4>詳細</h4>
+    <div class="monthly-container">
+        <div class="column">
+            <ul class="monthly-list">
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=01 %}">1月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=02 %}">2月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=03 %}">3月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=04 %}">4月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=05 %}">5月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=06 %}">6月</a></li>
+            </ul>
+        </div>
+
+        <div class="column">
+            <ul class="monthly-list">
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=07 %}">7月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=08 %}">8月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=09 %}">9月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=10 %}">10月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=11 %}">11月</a></li>
+                <li><a href="{% url 'household_budget:monthly_data' year=2023 month=12 %}">12月</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <h4>前月比</h4>
+    <div class="lastmonth-container">
+        <div class="column">
+            <ul class="lastmonth-list">
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=01 %}">1月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=02 %}">2月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=03 %}">3月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=04 %}">4月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=05 %}">5月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=06 %}">6月</a></li>
+            </ul>
+                <div class="d-flex justify-content-start mt-3">
+                  <a href="{% url 'accounts:user' %}" class="btn btn-secondary">戻る</a>
+                </div>
+        </div>
+
+        <div class="column">
+            <ul class="lastmonth-list">
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=07 %}">7月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=08 %}">8月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=09 %}">9月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=10 %}">10月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=11 %}">11月</a></li>
+                <li><a href="{% url 'household_budget:monthly_comparison' year=2023 month=12 %}">12月</a></li>
+            </ul>
+        </div>
+    </div>
+
+
+    {% if not user.is_authenticated %}
+        <div id="login-message">ログインしてください。</div>
+    {% endif %}
+{% endblock %}

@@ -1,10 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>家計簿</title>
     <style>
         body {
@@ -48,7 +43,11 @@
         }
 
          h4 {
-            margin-top: 20px;
+            margin-top: 100px;
+        }
+
+        h3 {
+            margin-top: 50px;
         }
 
         ul.monthly-list, ul.lastmonth-list {
@@ -94,17 +93,12 @@
          .column {
             margin: 0 20px; /* 各カラムの間に20pxのマージンを設定します。必要に応じて調整してください。 */
          }
-
-         h4 {
-            margin-top: 100px; /* 上側の余白を設定します。必要に応じて調整してください。 */
-         }
          
          .lastmonth-list a:hover {
             background-color: #8E4A1C;
          }
     </style>
 
-</head>
 <body>
     {% if user.is_authenticated %}
     <h3>{{ user.user_name }}さん</h3>
@@ -120,55 +114,14 @@
     </nav>    
 </body>
 
-<h4>今年の詳細</h4>
+<h4>データ確認</h4>
 <div class="monthly-container">
    <div class="column">
       <ul class="monthly-list">
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=01 %}">1月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=02 %}">2月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=03 %}">3月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=04 %}">4月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=05 %}">5月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=06 %}">6月</a></li>
-      </ul>
-   </div>
-
-   <div class="column">
-      <ul class="monthly-list">
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=07 %}">7月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=08 %}">8月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=09 %}">9月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=10 %}">10月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=11 %}">11月</a></li>
-         <li><a href="{% url 'household_budget:monthly_data' year=2024 month=12 %}">12月</a></li>
+         <li><a href="{% url 'accounts:data_2023' %}">2023年</a></li>
+         <li><a href="{% url 'accounts:data_2024' %}">2024年</a></li>
       </ul>
    </div>
 </div>
 
-<h4>今年の前月比</h4>
-<div class="lastmonth-container">
-   <div class="column">
-      <ul class="lastmonth-list">
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=01 %}">1月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=02 %}">2月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=03 %}">3月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=04 %}">4月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=05 %}">5月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=06 %}">6月</a></li>
-      </ul>
-   </div>
-
-   <div class="column">
-      <ul class="lastmonth-list">
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=07 %}">7月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=08 %}">8月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=09 %}">9月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=10 %}">10月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=11 %}">11月</a></li>
-         <li><a href="{% url 'household_budget:monthly_comparison' year=2024 month=12 %}">12月</a></li>
-      </ul>
-   </div>
-</div>
-
-</html>
 {% endblock %}

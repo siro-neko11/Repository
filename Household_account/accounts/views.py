@@ -15,6 +15,28 @@ from django.contrib import messages
 #ホーム画面
 class HomeView(TemplateView):
     template_name ='home.html'
+
+
+#2023年画面
+class Data_2023View(TemplateView):
+    template_name ='data_2023.html'
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+    
+#2024年画面
+class Data_2024View(TemplateView):
+    template_name = 'data_2024.html'
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+
+    
+
     
 #ユーザー登録
 class RegistUserView(CreateView):
@@ -57,7 +79,7 @@ class UserLogoutView(View):
         return redirect('accounts:home')
 
 
-#ログインが必要な画面
+#家計簿画面（ユーザー画面）
 class UserView(TemplateView):
     template_name = 'user.html'
     

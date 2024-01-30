@@ -3,7 +3,7 @@ from .views import (SavingListView, TransactionView, TransactionRegistView,
                     M_DataView, DeleteTransactionView, UpdateTransactionView,
                     set_budget, set_goal, reset_goal, MonthlyComparisonView,
                     AddPaymentDestinationView, UpdatePaymentDestinationView, DeletePaymentDestinationView,
-                    PaymentDestinationListView)
+                    PaymentDestinationListView, )
 
 
 app_name = 'household_budget'
