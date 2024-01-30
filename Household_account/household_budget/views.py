@@ -319,7 +319,7 @@ def reset_goal(request):
 # 各月の収支データ(2023)
 @method_decorator(login_required(login_url='/login/'), name='dispatch')
 class M_2023DataView(TemplateView):
-    template_name = 'm_data.html'
+    template_name = 'm_data2023.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -328,7 +328,14 @@ class M_2023DataView(TemplateView):
 
         # 月初と月末の日付を取得
         first_day_of_month = timezone.datetime(int(year), int(month), 1)
-        last_day_of_month = first_day_of_month.replace(day=1, month=first_day_of_month.month + 1) - timezone.timedelta(days=1)
+        if first_day_of_month.month == 12:
+            next_month = 1
+            next_year = first_day_of_month.year + 1
+        else:
+            next_month = first_day_of_month.month + 1
+            next_year = first_day_of_month.year
+            
+        last_day_of_month = timezone.datetime(next_year, next_month, 1) - timezone.timedelta(days=1)
 
         # 月ごとの集計データを取得
         monthly_summary = Transaction.objects.filter(
@@ -432,7 +439,15 @@ class M_DataView(TemplateView):
 
         # 月初と月末の日付を取得
         first_day_of_month = timezone.datetime(int(year), int(month), 1)
-        last_day_of_month = first_day_of_month.replace(day=1, month=first_day_of_month.month + 1) - timezone.timedelta(days=1)
+        if first_day_of_month.month == 12:
+            next_month = 1
+            next_year = first_day_of_month.year + 1
+        else:
+            next_month = first_day_of_month.month + 1
+            next_year = first_day_of_month.year
+            
+        last_day_of_month = timezone.datetime(next_year, next_month, 1) - timezone.timedelta(days=1)
+
 
         # 月ごとの集計データを取得
         monthly_summary = Transaction.objects.filter(
@@ -446,7 +461,7 @@ class M_DataView(TemplateView):
         categories = ['家賃', '水道代', 'ガス代', '電気代', '食費', '通信費', '交通費', '保険代', '日用品', '医療費', '交際費', '貯金', 'その他']
 
         # カテゴリごとの合計を取得
-        monthly_summary = Transaction.objects.filter(
+        monthly_summary_total= Transaction.objects.filter(
             user=self.request.user,
             event_date__year=year,
             event_date__month=month
@@ -523,6 +538,55 @@ class M_DataView(TemplateView):
 
         return context
     
+    
+#前月比(2023)
+class M_2023ComparisonView(TemplateView):
+    template_name = 'm_comparison2023.html'
+    
+    @method_decorator(login_required(login_url='/login/'))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # URL から年と月を取得
+        year = self.kwargs.get('year')
+        month = self.kwargs.get('month')
+
+        # 対象月のデータを取得
+        current_month_data = Transaction.objects.filter(user=self.request.user, event_date__year=year, event_date__month=month)
+
+        # 前月のデータを取得
+        last_month = datetime(int(year), int(month), 1) - timedelta(days=1)
+        last_month_data = Transaction.objects.filter(user=self.request.user, event_date__year=last_month.year, event_date__month=last_month.month)
+
+        # カテゴリごとの合計を計算
+        current_month_totals = current_month_data.values('category__category_name').annotate(total_amount=Sum('amount'))
+        last_month_totals = last_month_data.values('category__category_name').annotate(total_amount=Sum('amount'))
+
+        # カテゴリの一覧を取得
+        categories = Category.objects.all()
+
+        # データを整形してコンテキストに追加
+        comparison_data = []
+        for category in categories:
+            current_amount = next((item['total_amount'] for item in current_month_totals if item['category__category_name'] == category.category_name), 0)
+            last_amount = next((item['total_amount'] for item in last_month_totals if item['category__category_name'] == category.category_name), 0)
+            comparison_data.append({
+                'category': category.category_name,
+                'current_amount': current_amount,
+                'last_amount': last_amount,
+                'percentage_change': last_amount - current_amount
+            })
+
+        context['year'] = year
+        context['month'] = month
+        context['comparison_data'] = comparison_data
+
+        return context
+
 
 #前月比(2024)
 class MonthlyComparisonView(TemplateView):
