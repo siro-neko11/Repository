@@ -57,10 +57,10 @@
         }
 
         h3 {
-         margin-bottom: 25px; /* h3要素の下に余白を追加 */
-         }
+            margin-bottom: 25px; /* h3要素の下に余白を追加 */
+        }
 
-         .signup-link {
+        .signup-link {
             text-align: center;
             margin-top: 15px; /* リンク上部に余白を追加 */
         }
@@ -88,48 +88,43 @@
             font-size: smaller;
             font-weight: normal;
         }
-        
+
     </style>
 
-<div class="login-container">
-    <h3>ログイン</h3>
+    <div class="login-container">
+        <h3>ログイン</h3>
 
     {% if messages %}
-        <div class="alert alert-danger">
-            <ul>
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <div class="alert alert-success">
+                    {{ message }}
+                </div>
+            {% elif message.tags == 'error' %}
+                <div class="alert alert-danger">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
     {% endif %}
 
-    <form method="POST" class="login-form">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="{{ form.email.id_for_label }}">メールアドレス:</label>
-            {{ form.email }}
-        </div>
-        <div class="form-group">
-            <label for="{{ form.password.id_for_label }}">パスワード:</label>
-            {{ form.password }}
-        </div>
+        <form method="POST" class="login-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                    {{ field }}
+                </div>
+            {% endfor %}
 
-        <div class="form-group">
-            <div class="remember-me-container">
-                {{ form.remember }}
-                <label for="{{ form.remember.id_for_label }}" class="remember-me-label">ログイン状態を保存する</label>
+            <div class="form-group">
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+                <input type="submit" value="ログイン">
             </div>
-        </div>
-        
-        <div class="form-group">
-            <input type="hidden" name="next" value="{{ request.GET.next }}">
-            <input type="submit" value="ログイン">
-        </div>
-    </form>
+        </form>
 
-    <div class="signup-link">
-        <p>アカウント登録していない人は<a href="{% url 'accounts:regist' %}">こちら</a></p>
+        <div class="signup-link">
+            <p>アカウント登録していない人は<a href="{% url 'accounts:regist' %}">こちら</a></p>
+        </div>
     </div>
-</div>
 {% endblock %}

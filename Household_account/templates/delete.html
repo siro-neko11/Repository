@@ -5,6 +5,7 @@
       <div class="card-body">
         <h2 class="card-title text-dark">アカウント削除</h2>
         <p class="card-text">本当にアカウントを削除しますか？</p>
+        <p class="card-text">登録したデータが全て削除されます。</p>
 
         <form method="post" action="{% url 'accounts:delete' %}">
           {% csrf_token %}

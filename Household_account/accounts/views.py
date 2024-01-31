@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 
 
@@ -42,6 +42,15 @@ class Data_2024View(TemplateView):
 class RegistUserView(CreateView):
     template_name = 'regist.html'
     form_class = RegistForm
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'ログインして家計簿にアクセスしよう！')
+        return response
+
+    def get_success_url(self):
+        return reverse('accounts:login')
+    
     
     
 #ログイン画面
