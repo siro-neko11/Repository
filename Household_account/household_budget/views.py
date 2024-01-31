@@ -418,6 +418,17 @@ class M_2023DataView(TemplateView):
             event_date__year=year,
             event_date__month=month
             )
+        
+        # 最新の name1 トランザクション
+        latest_name1_transaction = monthly_details.filter(
+            Q(name_1__isnull=False) & ~Q(name_1=''),
+        ).order_by('-event_date').first()
+
+        # 最新の name2 トランザクション
+        latest_name2_transaction = monthly_details.filter(
+            Q(name_2__isnull=False) & ~Q(name_2=''),
+        ).order_by('-event_date').first()
+        
 
         # 最新の予算データを取得
         latest_budget = Budget.objects.filter(
@@ -440,6 +451,8 @@ class M_2023DataView(TemplateView):
         context['name1_total_amount'] = name1_total_amount
         context['name2_total_amount'] = name2_total_amount
         context['name'] = transaction_data
+        context['latest_name1_transaction'] = latest_name1_transaction
+        context['latest_name2_transaction'] = latest_name2_transaction
 
         return context
 
@@ -502,7 +515,7 @@ class M_DataView(TemplateView):
             Q(name_2__isnull=False) & ~Q(name_2=''),
             ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
-        ).aggregate(name1_has_data_total_amount=Sum('amount'))['name1_has_data_total_amount'] or 0
+        ).aggregate(name2_has_data_total_amount=Sum('amount'))['name2_has_data_total_amount'] or 0
 
         # 両方に値が入っていた場合の今月の合計
         name_monthly_amount = Transaction.objects.filter(
@@ -530,7 +543,17 @@ class M_DataView(TemplateView):
             event_date__year=year,
             event_date__month=month
             )
+        
+        # 最新の name1 トランザクション
+        latest_name1_transaction = monthly_details.filter(
+            Q(name_1__isnull=False) & ~Q(name_1=''),
+        ).order_by('-event_date').first()
 
+        # 最新の name2 トランザクション
+        latest_name2_transaction = monthly_details.filter(
+            Q(name_2__isnull=False) & ~Q(name_2=''),
+        ).order_by('-event_date').first()
+        
         # 最新の予算データを取得
         latest_budget = Budget.objects.filter(
             user=self.request.user,
@@ -552,7 +575,9 @@ class M_DataView(TemplateView):
         context['name1_total_amount'] = name1_total_amount
         context['name2_total_amount'] = name2_total_amount
         context['name'] = transaction_data
-
+        context['latest_name1_transaction'] = latest_name1_transaction
+        context['latest_name2_transaction'] = latest_name2_transaction
+        
         return context
     
     
