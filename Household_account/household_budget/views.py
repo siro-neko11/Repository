@@ -135,6 +135,7 @@ def set_budget(request):
         form = BudgetForm(request.POST, instance=budget)
         if form.is_valid():
             form.save()
+            messages.success(request, '予算設定ができました！')
             return redirect('accounts:user')
     else:
         form = BudgetForm(instance=budget)
