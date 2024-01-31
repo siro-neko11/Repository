@@ -66,6 +66,8 @@ class AddPaymentDestinationView(View):
             vendor_name = form.cleaned_data['vendor_name']
             user = request.user
             Vendor.objects.create(user=user, vendor_name=vendor_name)
+            messages.success(request, '支払先の登録が完了しました！')
+            
             return redirect('household_budget:b_regist')
 
         return render(request, self.template_name, {'form': form})

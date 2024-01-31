@@ -128,12 +128,15 @@
       <hr>
 
       {% if messages %}
-        <ul class="text-center text-danger">
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
+         {% for message in messages %}
+            {% if message.tags == 'success' %}
+              <div class="alert alert-success" style="text-align: center; color: green;">
+                 <strong>成功：</strong> {{ message }}
+              </div>
+            {% endif %}
+         {% endfor %}
       {% endif %}
+
 
       <form method="post" action="{% url 'household_budget:b_regist' %}">
         {% csrf_token %}
