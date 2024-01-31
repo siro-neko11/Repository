@@ -251,14 +251,24 @@ class TransactionView(TemplateView):
         
         #name_2の合計
         name2_total_amount =name2_only_monthly_amount - name_monthly_amount + name_both_half_monthly_amount
+
+# 最新の取引（name_1）を取得
+        try:
+            context['latest_name1_transaction'] = user_transactions.filter(Q(name_1__isnull=False) & ~Q(name_1='')).order_by('-event_date').first()
+        except Transaction.DoesNotExist:
+            context['latest_name1_transaction'] = None
+
+# 最新の取引（name_2）を取得
+        try:
+            context['latest_name2_transaction'] = user_transactions.filter(Q(name_2__isnull=False) & ~Q(name_2='')).order_by('-event_date').first()
+        except Transaction.DoesNotExist:
+            context['latest_name2_transaction'] = None
+        
         
         context['category_totals'] = category_totals_dict
         context['monthly_transactions'] = monthly_transactions
         context['name1_total_amount'] = name1_total_amount
         context['name2_total_amount'] = name2_total_amount
-        context['latest_name1_transaction'] = user_transactions.filter(Q(name_1__isnull=False) & ~Q(name_1='')).latest('event_date')
-        context['latest_name2_transaction'] = user_transactions.filter(Q(name_2__isnull=False) & ~Q(name_2='')).latest('event_date')
-
 
         return context
     
