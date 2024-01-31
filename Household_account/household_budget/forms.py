@@ -53,8 +53,8 @@ class TransactionForm(forms.ModelForm):
 
     class Meta:
         model = Transaction
-        fields = ['event_date', 'name_1', 'name_2', 'category', 'payment_type', 'vendor_name', 'amount', 'memo']
-  
+        fields = ['event_date', 'name_1', 'name_2', 'category', 'payment_type', 'vendor_name', 'amount', 'memo']  
+
 
  #年月入力       
 class YearMonthField(forms.MultiValueField):

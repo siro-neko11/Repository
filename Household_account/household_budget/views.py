@@ -220,7 +220,7 @@ class TransactionView(TemplateView):
             Q(name_2__isnull=False) & ~Q(name_2=''),
             ~Q(category_id=1) & ~Q(category_id=13),
             event_date__range=[first_day_of_month, last_day_of_month]
-        ).aggregate(name1_has_data_total_amount=Sum('amount'))['name1_has_data_total_amount'] or 0
+        ).aggregate(name2_has_data_total_amount=Sum('amount'))['name2_has_data_total_amount'] or 0
         
         
         
@@ -256,6 +256,9 @@ class TransactionView(TemplateView):
         context['monthly_transactions'] = monthly_transactions
         context['name1_total_amount'] = name1_total_amount
         context['name2_total_amount'] = name2_total_amount
+        context['latest_name1_transaction'] = user_transactions.filter(Q(name_1__isnull=False) & ~Q(name_1='')).latest('event_date')
+        context['latest_name2_transaction'] = user_transactions.filter(Q(name_2__isnull=False) & ~Q(name_2='')).latest('event_date')
+
 
         return context
     
