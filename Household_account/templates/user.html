@@ -100,6 +100,17 @@
     </style>
 
 <body>
+
+    {% if messages %}
+       <div class="alert alert-success mt-3" style="text-align: center; color: green;">
+          <storong>成功：</storong>
+          {% for message in messages %}
+             {{ message }}<br>
+          {% endfor %}
+       </div>
+    {% endif %}
+
+
     {% if user.is_authenticated %}
     <h3>{{ user.user_name }}さん</h3>
     <h2>ようこそ2人だけの家計簿へ！</h2>
@@ -112,7 +123,7 @@
             <li><a href="{% url 'household_budget:savings' %}" class="nav-button">貯金</a></li>
         </ul>
     </nav>    
-</body>
+
 
 <h4>過去を振り返ろう！</h4>
 <div class="monthly-container">
@@ -123,5 +134,6 @@
       </ul>
    </div>
 </div>
+</body>
 
 {% endblock %}

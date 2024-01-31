@@ -85,7 +85,11 @@ class UserView(TemplateView):
     
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+        response = super().dispatch(*args, **kwargs)
+    
+        messages_list = messages.get_messages(self.request)
+        self.extra_context = {'messages': messages_list}
+        return response
     
 
 #ユーザー情報削除画面

@@ -11,6 +11,7 @@ from django.views.generic import TemplateView
 from django.db.models.functions import TruncMonth, Coalesce
 from django.utils import timezone
 import math
+from django.contrib import messages
 
 
 
@@ -41,7 +42,10 @@ class TransactionRegistView(View):
             vendor, created = Vendor.objects.get_or_create(vendor_name=vendor_name, user=request.user)
             form.instance.vendor_name = vendor
             form.save()
+            
+            messages.success(request, '登録が完了しました。')            
             return redirect('accounts:user') 
+        
         else:
             transactions = Transaction.objects.all()
             return render(request, self.template_name, {'transactions': transactions, 'form': form})
