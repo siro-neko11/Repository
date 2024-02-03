@@ -466,6 +466,7 @@ class M_2023DataView(TemplateView):
         context['name'] = transaction_data
         context['latest_name1_transaction'] = latest_name1_transaction
         context['latest_name2_transaction'] = latest_name2_transaction
+        context['name_both_half_monthly_amount'] = name_both_half_monthly_amount
 
         return context
 
@@ -590,6 +591,7 @@ class M_DataView(TemplateView):
         context['name'] = transaction_data
         context['latest_name1_transaction'] = latest_name1_transaction
         context['latest_name2_transaction'] = latest_name2_transaction
+        context['name_both_half_monthly_amount'] = name_both_half_monthly_amount
         
         return context
     
