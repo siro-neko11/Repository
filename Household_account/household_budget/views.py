@@ -271,6 +271,7 @@ class TransactionView(TemplateView):
         context['monthly_transactions'] = monthly_transactions
         context['name1_total_amount'] = name1_total_amount
         context['name2_total_amount'] = name2_total_amount
+        context['name_both_half_monthly_amount'] = name_both_half_monthly_amount
 
         return context
     
